@@ -28,7 +28,7 @@ def check_offscreen():
     url = 'http://127.0.0.1:5000/{}'
     headers = {'Content-Type': 'application/json'}
 
-    frame_size = 60 * 180 * 2
+    frame_size = 60
 
     reward = 0
     done = False
@@ -40,7 +40,6 @@ def check_offscreen():
         res = requests.post(url.format('step'), headers=headers, data=msg)
         action = npDecode(res.json())
         obs, reward, done, _ = env.step(action)
-        env.render()
 
         if done:
             print("Episode terminated")

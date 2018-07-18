@@ -7,20 +7,16 @@ from flask import Flask, request
 app = Flask(__name__)
 
 from agent import Agent
+from functions.retina import Retina
+from functions.lip import LIP
+from functions.it import IT
+from functions.working_memory import WorkingMemory
+from functions.pattern_matcher import PatternMatcher
+from functions.state_manager import StateManager
+from functions.fef import FEF
 
 
-class Space(object):
-    def __init__(self):
-        pass
-
-    def sample(self):
-        dx = np.random.uniform(low=-0.02, high=0.02)
-        dy = np.random.uniform(low=-0.02, high=0.02)
-        return np.array([dx, dy])
-
-
-space = Space()
-agent = Agent(space)
+agent = Agent(Retina(), LIP(), IT(), WorkingMemory(), PatternMatcher(), StateManager(), FEF())
 
 
 def npEncode(obj):
@@ -36,7 +32,7 @@ def npDecode(obj):
 
 @app.route('/initialize', methods=['GET'])
 def reset():
-    agent = Agent(space)
+    agent = Agent(Retina(), LIP(), IT(), WorkingMemory(), PatternMatcher(), StateManager(), FEF())
     return '', HTTPStatus.NO_CONTENT
 
 
