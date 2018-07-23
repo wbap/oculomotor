@@ -1,20 +1,27 @@
-FROM alpine:latest
+FROM ubuntu:xenial
 
-ENV CPATH /usr/include/python3.6m
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential software-properties-common cmake curl python3-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apk add --no-cache \
-    gcc g++ musl-dev \
-    python3-dev py3-numpy py3-pillow && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
-    if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
-    pip install --trusted-host pypi.python.org \
+RUN if [ ! -e /usr/bin/python ]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
+    curl -O https://bootstrap.pypa.io/get-pip.py && \
+    python get-pip.py && \
+    rm get-pip.py
+
+RUN pip install --upgrade pip setuptools && \
+    pip --no-cache-dir install \
+    numpy \
     flask \
-    pybrica \
     chainer \
-    http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl \
+    torch \
     torchvision \
-    https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.8.0-py3-none-any.whl && \
-    rm -r /root/.cache 
+    tensorflow
+
+WORKDIR /tmp/build
+
+RUN curl -LO https://github.com/opencv/opencv/archive/3.4.2.tar.gz && \
+    tar zxf 3.4.2.tar.gz && cd opencv-3.4.2 && \
+    mkdir build && cd build && \
+    cmake -DWITH_QT=OFF -DWITH_GTK=OFF .. && make -j4 && make install
