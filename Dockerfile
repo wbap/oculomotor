@@ -1,4 +1,4 @@
-FROM oculomotor-base:latest
+FROM wbap/oculomotor-base:latest
 
 ADD ./application /application
 
