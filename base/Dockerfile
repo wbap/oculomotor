@@ -5,6 +5,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y libsm6 libxext6 libxrender1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN if [ ! -e /usr/bin/python ]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
     curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
