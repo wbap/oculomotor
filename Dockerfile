@@ -1,9 +1,14 @@
 FROM wbap/oculomotor-base:latest
 
-ADD ./application /application
+ENV CONTAINER_APP /opt/oculomotor/application
+ENV CONTAINER_TEST /opt/oculomotor/test
 
-ENV PYTHONPATH /application
+RUN mkdir -p ${CONTAINER_APP} ${CONTAINER_TEST}
+ADD ./application ${CONTAINER_APP}
+ADD ./test ${CONTAINER_TEST}
+
+ENV PYTHONPATH ${CONTAINER_APP}:${CONTAINER_TEST}
 
 EXPOSE 80
 
-CMD ["python", "/application/server.py"]
+CMD ["python", "${CONTAINER_APP}/server.py"]
