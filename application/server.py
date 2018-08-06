@@ -7,16 +7,9 @@ from flask import Flask, request
 app = Flask(__name__)
 
 from agent import Agent
-from functions.retina import Retina
-from functions.lip import LIP
-from functions.it import IT
-from functions.working_memory import WorkingMemory
-from functions.pattern_matcher import PatternMatcher
-from functions.state_manager import StateManager
-from functions.fef import FEF
 
 
-agent = Agent(Retina(), LIP(), IT(), WorkingMemory(), PatternMatcher(), StateManager(), FEF())
+agent = Agent()
 
 
 def npEncode(obj):
@@ -32,7 +25,7 @@ def npDecode(obj):
 
 @app.route('/initialize', methods=['GET'])
 def reset():
-    agent = Agent(Retina(), LIP(), IT(), WorkingMemory(), PatternMatcher(), StateManager(), FEF())
+    agent = Agent()
     return '', HTTPStatus.NO_CONTENT
 
 
@@ -43,7 +36,3 @@ def step():
     obs, reward, done, _ = request.json
     action = agent(npDecode(obs), reward, done)
     return flask.jsonify(npEncode(action)), HTTPStatus.OK
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
