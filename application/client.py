@@ -25,8 +25,10 @@ def check_offscreen():
     content = PointToTargetContent(
         target_size="small", use_lure=True, lure_size="large")
     env = Environment(content)
-    url = 'http://127.0.0.1:8080/{}'
+    url = 'http://127.0.0.1:5000/{}'
     headers = {'Content-Type': 'application/json'}
+
+    requests.get(url.format('initialize'))
 
     frame_size = 60
 

@@ -8,8 +8,10 @@ app = Flask(__name__)
 
 from agent import Agent
 
+from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 
-agent = Agent()
+
+agent = Agent(BG(), FEF(), LIP(), PFC(), Retina(), SC(), VC())
 
 
 def npEncode(obj):
@@ -25,7 +27,7 @@ def npDecode(obj):
 
 @app.route('/initialize', methods=['GET'])
 def reset():
-    agent = Agent()
+    agent = Agent(BG(), FEF(), LIP(), PFC(), Retina(), SC(), VC())
     return '', HTTPStatus.NO_CONTENT
 
 
