@@ -16,8 +16,8 @@ RUN if [ ! -e /usr/bin/python ]; then ln -sf /usr/bin/python3 /usr/bin/python; f
 
 RUN pip install --upgrade pip setuptools && \
     pip --no-cache-dir install \
-    numpy \
-    pybrica \
+    numpy==1.14.5 \
+    BriCA2 \
     flask \
     chainer \
     torch \
