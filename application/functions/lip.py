@@ -2,7 +2,7 @@ import brica
 
 class LIP(object):
     def __init__(self):
-        self.timing = brica.Timing(0, 1, 0)
+        self.timing = brica.Timing(2, 1, 0)
 
     def __call__(self, inputs):
         if 'from_retina' not in inputs:

@@ -2,7 +2,7 @@ import brica
 
 class BG(object):
     def __init__(self):
-        self.timing = brica.Timing(0, 1, 0)
+        self.timing = brica.Timing(5, 1, 0)
 
     def __call__(self, inputs):
         if 'from_environment' not in inputs:

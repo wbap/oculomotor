@@ -38,7 +38,10 @@ def check_offscreen():
     obs = env.reset()
 
     for i in range(frame_size):
-        msg = json.dumps([npEncode(obs), reward, done, None])
+        image = obs['screen']
+        angle = obs['angle']
+        
+        msg = json.dumps([npEncode(image), angle, reward, done, None])
         res = requests.post(url.format('step'), headers=headers, data=msg)
         action = npDecode(res.json())
         obs, reward, done, _ = env.step(action)

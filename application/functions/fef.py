@@ -2,7 +2,7 @@ import brica
 
 class FEF(object):
     def __init__(self):
-        self.timing = brica.Timing(0, 1, 0)
+        self.timing = brica.Timing(4, 1, 0)
 
     def __call__(self, inputs):
         if 'from_lip' not in inputs:

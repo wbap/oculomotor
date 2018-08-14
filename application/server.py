@@ -11,7 +11,13 @@ from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 
 
-agent = Agent(BG(), FEF(), LIP(), PFC(), Retina(), SC(), VC())
+agent = Agent(retina=Retina(),
+              lip=LIP(),
+              vc=VC(),
+              pfc=PFC(),
+              fef=FEF(),
+              bg=BG(),
+              sc=SC())
 
 
 def npEncode(obj):
@@ -35,6 +41,6 @@ def reset():
 def step():
     if request.headers['Content-Type'] != 'application/json':
         return 'expected JSON body', HTTPStatus.BAD_REQUEST
-    obs, reward, done, _ = request.json
-    action = agent(npDecode(obs), reward, done)
+    image, angle, reward, done, _ = request.json
+    action = agent(npDecode(image), angle, reward, done)
     return flask.jsonify(npEncode(action)), HTTPStatus.OK

@@ -11,8 +11,11 @@ class Environment:
         self.timing = brica.Timing(0, 1, 0)
 
     def __call__(self, inputs):
+        print("ENV call: inputs={}".format(inputs)) #..
+        
         self._action = inputs['from_sc']
-        return dict(to_retina=self._image, to_bg=(self._reward, self._done))
+        return dict(to_retina=self._image,
+                    to_bg=(self._reward, self._done))
 
     def set(self, image, reward, done):
         self._image = image
@@ -28,22 +31,22 @@ class Environment:
 
 class Agent(object):
     connections = [
-        ('environment', 'retina'),
+        ('environment', 'retina'), # offset = 0
         ('environment', 'bg'),
-        ('retina', 'lip'),
+        ('retina', 'lip'), # offset=1
         ('retina', 'vc'),
-        ('lip', 'fef'),
-        ('vc', 'pfc'),
+        ('lip', 'fef'), # offset=2
+        ('vc', 'pfc'), # offset=2
         ('vc', 'fef'),
-        ('pfc', 'fef'),
+        ('pfc', 'fef'), # offset=3
         ('pfc', 'bg'),
-        ('fef', 'pfc'),
+        ('fef', 'pfc'), # offset=4
         ('fef', 'sc'),
         ('fef', 'bg'),
-        ('bg', 'pfc'),
+        ('bg', 'pfc'), # offset=5
         ('bg', 'fef'),
         ('bg', 'sc'),
-        ('sc', 'environment'),
+        ('sc', 'environment'), # offset=6
     ]
 
     def __init__(self, retina, lip, vc, pfc, fef, bg, sc):
@@ -75,9 +78,10 @@ class Agent(object):
 
             print('connect {} {}'.format(in_port, out_port))
 
-            brica.connect(self.components[origin_name], out_port, self.components[target_name], in_port)
+            brica.connect(self.components[origin_name], out_port,
+                          self.components[target_name], in_port)
 
-    def __call__(self, image, reward, done):
+    def __call__(self, image, angle, reward, done):
         self.environment.set(image, reward, done)
         self.scheduler.step()
         return self.environment.action
