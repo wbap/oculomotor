@@ -7,4 +7,8 @@ class VC(object):
     def __call__(self, inputs):
         if 'from_retina' not in inputs:
             raise Exception('VC did not recieve from Retina')
-        return dict(to_fef=None, to_pfc=None)
+
+        retina_image = inputs['from_retina']
+        
+        return dict(to_fef=retina_image,
+                    to_pfc=retina_image)

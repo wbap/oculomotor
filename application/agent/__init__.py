@@ -11,8 +11,6 @@ class Environment:
         self.timing = brica.Timing(0, 1, 0)
 
     def __call__(self, inputs):
-        print("ENV call: inputs={}".format(inputs)) #..
-        
         self._action = inputs['from_sc']
         return dict(to_retina=self._image,
                     to_bg=(self._reward, self._done))
