@@ -19,6 +19,18 @@ agent = Agent(retina=Retina(),
               bg=BG(),
               sc=SC())
 
+"""
+debug_image_index = 0
+def debug_save_image(image):
+    from skimage import io
+
+    global debug_image_index
+    image = np.flip(image, 0) # Flip image upside down
+    file_name = "out_{0:04d}.png".format(debug_image_index)
+    io.imsave(file_name, image)
+    debug_image_index += 1
+"""
+
 def main():
     content = PointToTargetContent(
         target_size="small", use_lure=True, lure_size="large")    
@@ -49,6 +61,9 @@ def main():
         if done:
             print("Episode terminated")
             obs = env.reset()
+
+        image = obs['screen']
+        #debug_save_image(image)
 
 
 if __name__ == '__main__':

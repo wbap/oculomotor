@@ -4,7 +4,6 @@ import numpy as np
 
 import brica
 
-
 class Retina(object):
     """ Retina module.
 
@@ -26,7 +25,7 @@ class Retina(object):
         
         image = inputs['from_environment']
         retina_image = self._create_retina_image(image)
-        
+
         return dict(to_lip=retina_image,
                     to_vc=retina_image)
 
@@ -78,7 +77,8 @@ class Retina(object):
         # Conver to Grayscale
         gray_blur_image = cv2.cvtColor(blur_image, cv2.COLOR_BGR2GRAY)
         gray_blur_image = np.reshape(gray_blur_image,
-                                   [gray_blur_image.shape[0], gray_blur_image.shape[0], 1])
+                                     [gray_blur_image.shape[0],
+                                      gray_blur_image.shape[0], 1])
         gray_blur_image = np.tile(gray_blur_image, 3)
         return gray_blur_image
 

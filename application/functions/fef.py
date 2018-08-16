@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-import brica
 import os
 import cv2
 import math
 import numpy as np
 
+import brica
+from .utils import load_image
+
 GRID_DIVISION = 8
 GRID_WIDTH = 128 // GRID_DIVISION
 
-ACCUMULAATE_DECAY_RATE = 0.98
 CURSOR_MATCH_COEFF = 0.1
 
 
-class Accumulator(object):
-    def __init__(self, ex, ey):
+class ActionAccumulator(object):
+    def __init__(self, ex, ey, decay_rate=0.9):
         """
         Arguments:
           ex: Float eye move dir x
@@ -23,13 +24,14 @@ class Accumulator(object):
         self.likelihood = 0.0
         self.ex = ex
         self.ey = ey
+        self.decay_rate = decay_rate
         
     def accumulate(self, value):
         self.likelihood += value
         self.likelihood = np.clip(self.likelihood, 0.0, 1.0)
         
         # Decay likelihood
-        self.likelihood *= ACCUMULAATE_DECAY_RATE
+        self.likelihood *= self.decay_rate
 
     def reset(self):
         self.likelihood = 0.0
@@ -39,7 +41,7 @@ class Accumulator(object):
         return [self.likelihood, self.ex, self.ey]
 
 
-class SaliencyAccumulator(Accumulator):
+class SaliencyAccumulator(ActionAccumulator):
     def __init__(self, pixel_x, pixel_y, ex, ey):
         super(SaliencyAccumulator, self).__init__(ex, ey)
         # Pixel x,y pos at left top corner of the region.
@@ -50,7 +52,7 @@ class SaliencyAccumulator(Accumulator):
         pass
 
 
-class CursorAccumulator(Accumulator):
+class CursorAccumulator(ActionAccumulator):
     def __init__(self, pixel_x, pixel_y, ex, ey, cursor_template):
         super(CursorAccumulator, self).__init__(ex, ey)
         # Pixel x,y pos at left top corner of the region.
@@ -63,12 +65,13 @@ class CursorAccumulator(Accumulator):
         region_image = retina_image[self.pixel_y:self.pixel_y+GRID_WIDTH,
                                     self.pixel_x:self.pixel_x+GRID_WIDTH, :]
         # Calculate template matching
-        match = cv2.matchTemplate(region_image, self.cursor_template, cv2.TM_CCOEFF_NORMED)
+        match = cv2.matchTemplate(region_image, self.cursor_template,
+                                  cv2.TM_CCOEFF_NORMED)
         # Find the maximum match value
         match_rate = np.max(match)
         self.accumulate(match_rate * CURSOR_MATCH_COEFF)
         
-        
+
 class FEF(object):
     def __init__(self):
         self.timing = brica.Timing(4, 1, 0)
@@ -76,19 +79,19 @@ class FEF(object):
         self.saliency_accumulators = []
         self.cursor_accumulators = []
         
-        cursor_template = self._load_image("data/debug_cursor_template_w.png")
+        cursor_template = load_image("data/debug_cursor_template_w.png")
         
-        for i in range(GRID_DIVISION):
-            pixel_x = GRID_WIDTH * i
-            cx = 2.0 / GRID_DIVISION * (i + 0.5) - 1.0
+        for ix in range(GRID_DIVISION):
+            pixel_x = GRID_WIDTH * ix
+            cx = 2.0 / GRID_DIVISION * (ix + 0.5) - 1.0
             
-            for j in range(GRID_DIVISION):
-                pixel_y = GRID_WIDTH * j
-                cy = 2.0 / GRID_DIVISION * (j + 0.5) - 1.0
+            for iy in range(GRID_DIVISION):
+                pixel_y = GRID_WIDTH * iy
+                cy = 2.0 / GRID_DIVISION * (iy + 0.5) - 1.0
                 
-                ex = cx
+                ex = -cx
                 ey = -cy
-
+                
                 #saliency_accumulator = SaliencyAccumulator(pixel_x, pixel_y, ex, ey)
                 #self.saliency_accumulators.append(saliency_accumulator)
                 
@@ -105,16 +108,23 @@ class FEF(object):
             raise Exception('FEF did not recieve from PFC')
         if 'from_bg' not in inputs:
             raise Exception('FEF did not recieve from BG')
+
+        phase = inputs['from_pfc']
+
+        print("phase={}".format(phase))
         
         saliency_map = inputs['from_lip']
         retina_image = inputs['from_vc']
         
         #for saliency_accumulator in self.saliency_accumulators:
         #    saliency_accumulator.process(saliency_map)
+
         for cursor_accumulator in self.cursor_accumulators:
             cursor_accumulator.process(retina_image)
         
         output = self._collect_output()
+
+        #self._debug_analysis()
         
         return dict(to_pfc=None,
                     to_bg=output,
@@ -127,8 +137,11 @@ class FEF(object):
             output.append(cursor_accumulator.output)
         return output
 
-    def _load_image(self, file_path):
-        module_dir, _ = os.path.split(os.path.realpath(__file__))
-        absolute_path = os.path.join(module_dir, file_path)
-        image = cv2.imread(absolute_path)
-        return image
+    def _debug_analysis(self):
+        cursor_likelihoods = []
+        
+        for cursor_accumulator in self.cursor_accumulators:
+            cursor_likelihoods.append(cursor_accumulator.likelihood)
+            
+        print("cursor: total: {}".format(np.sum(cursor_likelihoods)))
+        print("cursor: max:   {}".format(np.max(cursor_likelihoods)))
