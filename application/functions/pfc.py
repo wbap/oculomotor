@@ -22,9 +22,6 @@ class CursorFindAccumulator(object):
         self.likelihood += value
         self.likelihood = np.clip(self.likelihood, 0.0, 1.0)
         
-        # Decay likelihood
-        self.likelihood *= self.decay_rate
-        
     def reset(self):
         self.likelihood = 0.0
 
@@ -33,8 +30,13 @@ class CursorFindAccumulator(object):
                                   cv2.TM_CCOEFF_NORMED)
         match_rate = np.max(match)
         self.accumulate(match_rate * 0.1)
-        
-        
+
+    def post_process(self):
+        # Decay likelihood
+        self.likelihood *= self.decay_rate
+
+
+
 class PFC(object):
     def __init__(self):
         self.timing = brica.Timing(3, 1, 0)
@@ -55,6 +57,7 @@ class PFC(object):
         retina_image = inputs['from_vc']
         
         self.cursor_find_accmulator.process(retina_image)
+        self.cursor_find_accmulator.post_process()
         
         if self.phase == Phase.INIT:
             if self.cursor_find_accmulator.likelihood > 0.7:
@@ -63,13 +66,20 @@ class PFC(object):
             if self.cursor_find_accmulator.likelihood < 0.4:
                 self.phase = Phase.TARGET
         else:
-            if self.cursor_find_accmulator.likelihood > 0.7:
+            if self.cursor_find_accmulator.likelihood > 0.6:
                 self.phase = Phase.START
         
         if self.phase == Phase.INIT or self.phase == Phase.START:
+            # TODO: 領野をまたいだ共通phaseをどう定義するか？
             fef_message = 0
         else:
             fef_message = 1
+
+        self._debug_analysis()
         
         return dict(to_fef=fef_message,
                     to_bg=None)
+
+    def _debug_analysis(self):
+        print("pfc phase={}".format(self.phase))
+        print("pfc lkl={}".format(self.cursor_find_accmulator.likelihood))

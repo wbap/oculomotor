@@ -11,6 +11,7 @@ GRID_DIVISION = 8
 GRID_WIDTH = 128 // GRID_DIVISION
 
 CURSOR_MATCH_COEFF = 0.1
+SALIENCY_COEFF = 0.3
 
 
 class ActionAccumulator(object):
@@ -29,7 +30,8 @@ class ActionAccumulator(object):
     def accumulate(self, value):
         self.likelihood += value
         self.likelihood = np.clip(self.likelihood, 0.0, 1.0)
-        
+
+    def post_process(self):
         # Decay likelihood
         self.likelihood *= self.decay_rate
 
@@ -43,14 +45,18 @@ class ActionAccumulator(object):
 
 class SaliencyAccumulator(ActionAccumulator):
     def __init__(self, pixel_x, pixel_y, ex, ey):
-        super(SaliencyAccumulator, self).__init__(ex, ey)
+        super(SaliencyAccumulator, self).__init__(ex, ey, decay_rate=0.85)
         # Pixel x,y pos at left top corner of the region.
         self.pixel_x = pixel_x
         self.pixel_y = pixel_y
         
     def process(self, saliency_map):
-        pass
-
+        # Crop region image
+        region_saliency = saliency_map[self.pixel_y:self.pixel_y+GRID_WIDTH,
+                                       self.pixel_x:self.pixel_x+GRID_WIDTH]
+        average_saliency = np.mean(region_saliency)
+        self.accumulate(average_saliency * CURSOR_MATCH_COEFF)
+        
 
 class CursorAccumulator(ActionAccumulator):
     def __init__(self, pixel_x, pixel_y, ex, ey, cursor_template):
@@ -69,7 +75,7 @@ class CursorAccumulator(ActionAccumulator):
                                   cv2.TM_CCOEFF_NORMED)
         # Find the maximum match value
         match_rate = np.max(match)
-        self.accumulate(match_rate * CURSOR_MATCH_COEFF)
+        self.accumulate(match_rate * SALIENCY_COEFF)
         
 
 class FEF(object):
@@ -92,8 +98,8 @@ class FEF(object):
                 ex = -cx
                 ey = -cy
                 
-                #saliency_accumulator = SaliencyAccumulator(pixel_x, pixel_y, ex, ey)
-                #self.saliency_accumulators.append(saliency_accumulator)
+                saliency_accumulator = SaliencyAccumulator(pixel_x, pixel_y, ex, ey)
+                self.saliency_accumulators.append(saliency_accumulator)
                 
                 cursor_accumulator = CursorAccumulator(pixel_x, pixel_y, ex, ey,
                                                        cursor_template)
@@ -111,20 +117,27 @@ class FEF(object):
 
         phase = inputs['from_pfc']
 
-        print("phase={}".format(phase))
+        print("fef phase={}".format(phase))
         
         saliency_map = inputs['from_lip']
         retina_image = inputs['from_vc']
         
-        #for saliency_accumulator in self.saliency_accumulators:
-        #    saliency_accumulator.process(saliency_map)
+        # TODO: 領野をまたいだ共通phaseをどう定義するか？
+        if phase == 0:
+            for cursor_accumulator in self.cursor_accumulators:
+                cursor_accumulator.process(retina_image)
+        else:
+            for saliency_accumulator in self.saliency_accumulators:
+                saliency_accumulator.process(saliency_map)
 
+        for saliency_accumulator in self.saliency_accumulators:
+            saliency_accumulator.post_process()
         for cursor_accumulator in self.cursor_accumulators:
-            cursor_accumulator.process(retina_image)
+            cursor_accumulator.post_process()
         
         output = self._collect_output()
-
-        #self._debug_analysis()
+        
+        self._debug_analysis()
         
         return dict(to_pfc=None,
                     to_bg=output,
@@ -132,16 +145,23 @@ class FEF(object):
 
     def _collect_output(self):
         output = []
-        # TODO: saliency accumulatorの対応まだ
+        for saliency_accumulator in self.saliency_accumulators:
+            output.append(saliency_accumulator.output)
         for cursor_accumulator in self.cursor_accumulators:
-            output.append(cursor_accumulator.output)
+            output.append(cursor_accumulator.output)            
         return output
 
     def _debug_analysis(self):
         cursor_likelihoods = []
-        
         for cursor_accumulator in self.cursor_accumulators:
             cursor_likelihoods.append(cursor_accumulator.likelihood)
             
-        print("cursor: total: {}".format(np.sum(cursor_likelihoods)))
-        print("cursor: max:   {}".format(np.max(cursor_likelihoods)))
+        print("cursor: lkl total: {}".format(np.sum(cursor_likelihoods)))
+        print("cursor: lkl max:   {}".format(np.max(cursor_likelihoods)))
+
+        saliency_likelihoods = []
+        for saliency_accumulator in self.saliency_accumulators:
+            saliency_likelihoods.append(saliency_accumulator.likelihood)
+            
+        print("saliency: lkl total: {}".format(np.sum(saliency_likelihoods)))
+        print("saliency: lkl max:   {}".format(np.max(saliency_likelihoods)))
