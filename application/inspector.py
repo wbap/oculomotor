@@ -1,6 +1,7 @@
 # Debug inspector
 
 import numpy as np
+import math
 import pygame, sys
 from pygame.locals import *
 
@@ -94,11 +95,12 @@ class Display(object):
         image = pygame.image.frombuffer(data, (128,128), 'RGB')
         self.surface.blit(image, (left, top))
         self.draw_center_text(label, 128/2 + left, top + 128 + 8)
+        pygame.draw.rect(self.surface, DARK_GRAY, Rect(left, top, 128, 128), 1)
         
     def show_reward(self):
         self.draw_text("REWARD: {}".format(int(self.episode_reward)), 128 * 3 + 8 + 8, 10)
         
-    def show_fef_data(self, fef_data):
+    def show_fef_data_bars(self, fef_data):
         fef_data_len = len(fef_data)
 
         bottom = 256 + 16
@@ -113,6 +115,40 @@ class Display(object):
             pygame.draw.line(self.surface, WHITE, (left,  top), (left,  bottom), 1)
         
         self.draw_center_text("likelihoods", (8+3*fef_data_len)//2, bottom + 8)
+
+    def show_fef_data_grid(self, fef_data):
+        grid_division = int(math.sqrt(len(fef_data) // 2))
+        grid_width = 128 // grid_division
+
+        likelihoods0 = []
+        likelihoods1 = []
+
+        data_len = len(fef_data) // 2
+
+        for i in range(data_len):
+            likelihoods0.append(fef_data[i][0])
+            likelihoods1.append(fef_data[i+data_len][0])
+
+        self.show_grid(likelihoods0, 0, grid_division, grid_width, 8,       300, "saliency acc")
+        self.show_grid(likelihoods1, 0, grid_division, grid_width, 8 + 128, 300, "cursor acc")
+        
+    def show_grid(self, data, offset, grid_division, grid_width, left, top, label):
+        index = 0
+        for ix in range(grid_division):
+            x = grid_width * ix
+            for iy in range(grid_division):
+                y = grid_width * iy
+                likelihood = data[index]
+                c = int(likelihood * 255.0)
+                color = (c,c,c)
+                pygame.draw.rect(self.surface, color, Rect(left+x,
+                                                           top+y,
+                                                           grid_width,
+                                                           grid_width))
+                index += 1
+        pygame.draw.rect(self.surface, DARK_GRAY, Rect(left, top, 128, 128), 1)
+        self.draw_center_text(label, 128/2 + left, top + 128 + 8)
+         
         
     def process(self):
         action = self.agent(self.last_image,
@@ -141,7 +177,8 @@ class Display(object):
             self.show_saliency_map(self.lip.last_saliency_map)
             
         if self.sc.last_fef_data is not None:
-            self.show_fef_data(self.sc.last_fef_data)
+            self.show_fef_data_bars(self.sc.last_fef_data)
+            self.show_fef_data_grid(self.sc.last_fef_data)
             
         self.last_image = image
         self.last_angle = angle
@@ -152,7 +189,7 @@ class Display(object):
 def main():
     FPS = 60
     
-    display_size = (500, 400)
+    display_size = (500, 500)
     display = Display(display_size)
     
     clock = pygame.time.Clock()

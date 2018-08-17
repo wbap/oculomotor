@@ -137,7 +137,7 @@ class FEF(object):
         
         output = self._collect_output()
         
-        self._debug_analysis()
+        #self._debug_analysis()
         
         return dict(to_pfc=None,
                     to_bg=output,
