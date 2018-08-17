@@ -16,6 +16,8 @@ class LIP(object):
     def __init__(self):
         self.timing = brica.Timing(2, 1, 0)
 
+        self.last_saliency_map = None
+
     def __call__(self, inputs):
         if 'from_retina' not in inputs:
             raise Exception('LIP did not recieve from Retina')
@@ -23,6 +25,9 @@ class LIP(object):
         retina_image = inputs['from_retina'] # (128, 128, 3)
         
         saliency_map = self._get_saliency_map(retina_image) # (128, 128)
+
+        # Store saliency map for debug visualizer
+        self.last_saliency_map = saliency_map
         
         return dict(to_fef=saliency_map)
 
@@ -45,7 +50,7 @@ class LIP(object):
         # Calculate Inverse FFT
         image_processed = cv2.idft(dft)
         magnitude, _ = cv2.cartToPolar(image_processed[:, :, 0],
-                                   image_processed[:, :, 1])
+                                       image_processed[:, :, 1])
         return magnitude
 
     def _get_saliency_map(self, image):

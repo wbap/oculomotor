@@ -4,6 +4,8 @@ class SC(object):
     def __init__(self):
         self.timing = brica.Timing(6, 1, 0)
 
+        self.last_fef_data = None
+
     def __call__(self, inputs):
         if 'from_fef' not in inputs:
             raise Exception('SC did not recieve from FEF')
@@ -14,13 +16,17 @@ class SC(object):
         bg_data = inputs['from_bg']
 
         action = self._decide_action(fef_data, bg_data)
+        
+        # Store FEF data for debug visualizer
+        self.last_fef_data = fef_data
+        
         return dict(to_environment=action)
 
     def _decide_action(self, fef_data, bg_data):
         max_likelihoood = -1.0
         decided_ex = 0.0
         decided_ey = 0.0
-
+        
         # TODO: デバッグで現在最大のlikelihoodを持つactionを反映している
         for data in fef_data:
             likelihood = data[0]

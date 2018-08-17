@@ -19,12 +19,17 @@ class Retina(object):
         width = 128
         self.rates, self.inv_rates = self._create_rate_datas(width)
 
+        self.last_retina_image = None
+
     def __call__(self, inputs):
         if 'from_environment' not in inputs:
             raise Exception('Retina did not recieve from Environment')
         
         image = inputs['from_environment']
         retina_image = self._create_retina_image(image)
+
+        # Store retina image for debug visualizer
+        self.last_retina_image = retina_image
 
         return dict(to_lip=retina_image,
                     to_vc=retina_image)
