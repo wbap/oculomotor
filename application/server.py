@@ -33,7 +33,13 @@ def npDecode(obj):
 
 @app.route('/initialize', methods=['GET'])
 def reset():
-    agent = Agent(BG(), FEF(), LIP(), PFC(), Retina(), SC(), VC())
+    agent = Agent(retina=Retina(),
+                  lip=LIP(),
+                  vc=VC(),
+                  pfc=PFC(),
+                  fef=FEF(),
+                  bg=BG(),
+                  sc=SC())
     return '', HTTPStatus.NO_CONTENT
 
 
