@@ -1,4 +1,6 @@
+import numpy as np
 import brica
+
 
 class SC(object):
     def __init__(self):
@@ -38,4 +40,4 @@ class SC(object):
                 max_likelihoood = likelihood
                 
         action = [decided_ex * 0.01, decided_ey * 0.01]
-        return action
+        return np.array(action, dtype=np.float32)
