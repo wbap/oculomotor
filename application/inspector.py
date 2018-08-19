@@ -9,6 +9,33 @@ from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 from oculoenv import PointToTargetContent, Environment
 
+RECORDING = False
+
+
+class MovieWriter(object):
+  def __init__(self, file_name, frame_size, fps):
+    """
+    frame_size is (w, h)
+    """
+    import cv2
+    
+    self._frame_size = frame_size
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    self.vout = cv2.VideoWriter()
+    success = self.vout.open(file_name, fourcc, fps, frame_size, True)
+    if not success:
+      print("Create movie failed: {0}".format(file_name))
+
+  def add_frame(self, frame):
+    """
+    frame shape is (h, w, 3), dtype is np.uint8
+    """
+    self.vout.write(frame)
+
+  def close(self):
+    self.vout.release() 
+    self.vout = None
+
 
 BLUE    = (128, 128, 255)
 RED     = (255, 192, 192)
@@ -184,6 +211,10 @@ class Display(object):
         self.last_angle = angle
         self.last_reward = reward
         self.last_done = done
+
+    def get_frame(self):
+        data = self.surface.get_buffer().raw
+        return data
         
 
 def main():
@@ -195,6 +226,11 @@ def main():
     clock = pygame.time.Clock()
     running = True
 
+    frame_count = 0
+
+    if RECORDING:
+        writer = MovieWriter("out.mov", display_size, FPS)
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -202,6 +238,20 @@ def main():
         
         display.update()
         clock.tick(FPS)
+
+        if RECORDING:
+            frame_str = display.get_frame()
+            d = np.fromstring(frame_str, dtype=np.uint8)
+            d = d.reshape((display_size[1], display_size[0], 3))
+            writer.add_frame(d)
+
+            frame_count += 1
+
+            if frame_count > 1000:
+                running = False
+
+    if RECORDING:
+        writer.close()
 
 
 if __name__ == '__main__':
