@@ -248,7 +248,7 @@ def main():
                                    use_lure=True,
                                    lure_size="large")
     
-    inspector = inspector(content, display_size)
+    inspector = Inspector(content, display_size)
     
     clock = pygame.time.Clock()
     running = True
