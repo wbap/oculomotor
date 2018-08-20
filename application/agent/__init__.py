@@ -74,8 +74,6 @@ class Agent(object):
             self.components[origin_name].make_out_port(out_port)
             self.components[target_name].make_in_port(in_port)
 
-            print('connect {} {}'.format(in_port, out_port))
-
             brica.connect(self.components[origin_name], out_port,
                           self.components[target_name], in_port)
 

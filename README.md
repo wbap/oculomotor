@@ -7,25 +7,20 @@ WBAI 2018 Hackathon Oculomotor Project Repository.
 $ git clone --recursive https://github.com/wbap/oculomotor
 ```
 
-### 2. Build the base docker image.
+### 2. Build the docker image.
 ```
-# 2. Build the base docker image.
-$ docker build -t wbap/oculomotor-base ./base
+$ docker build -t wbap/oculomotor .
 ```
 
 ### 3. Edit the files under `appliation/functions`.
 
-### 4. Build the server docker image.
+### 4. Run the docker image.
 ```
-$ docker build -t wbap/oculomotor-server .
-```
-
-### 5. Run the server docker image.
-```
-$ docker run -it -p 8080:80 wbap/oculomotor-server
+$ ./helpers/run_app.sh
 ```
 
-### 6. Run the client script.
-```
-$ python client.py
-```
+### 5. Open web page in a browser
+
+[http://0.0.0.0:5000/](http://0.0.0.0:5000/) : Simple environment run
+
+[http://0.0.0.0:5000/inspector](http://0.0.0.0:5000/inspector) : Inspector mode

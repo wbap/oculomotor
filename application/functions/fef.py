@@ -117,8 +117,6 @@ class FEF(object):
 
         phase = inputs['from_pfc']
 
-        print("fef phase={}".format(phase))
-        
         saliency_map, optical_flow = inputs['from_lip']
         retina_image = inputs['from_vc']
         
@@ -156,12 +154,6 @@ class FEF(object):
         for cursor_accumulator in self.cursor_accumulators:
             cursor_likelihoods.append(cursor_accumulator.likelihood)
             
-        print("cursor: lkl total: {}".format(np.sum(cursor_likelihoods)))
-        print("cursor: lkl max:   {}".format(np.max(cursor_likelihoods)))
-
         saliency_likelihoods = []
         for saliency_accumulator in self.saliency_accumulators:
             saliency_likelihoods.append(saliency_accumulator.likelihood)
-            
-        print("saliency: lkl total: {}".format(np.sum(saliency_likelihoods)))
-        print("saliency: lkl max:   {}".format(np.max(saliency_likelihoods)))
