@@ -7,6 +7,7 @@ import brica
 GAUSSIAN_KERNEL_SIZE = (5,5)
 
 
+"""
 class OpticalFlow(object):
     def __init__(self):
         self.last_gray_image = None
@@ -42,6 +43,7 @@ class OpticalFlow(object):
             # (128, 128, 2)
         self.last_gray_image = gray_image
         return self.flow
+"""
 
 
 class LIP(object):
@@ -53,7 +55,7 @@ class LIP(object):
     def __init__(self):
         self.timing = brica.Timing(2, 1, 0)
 
-        self.optical_flow = OpticalFlow()
+        #self.optical_flow = OpticalFlow()
 
         self.last_saliency_map = None
         self.last_optical_flow = None
@@ -65,12 +67,13 @@ class LIP(object):
         retina_image = inputs['from_retina'] # (128, 128, 3)
         saliency_map = self._get_saliency_map(retina_image) # (128, 128)
 
-        optical_flow = self.optical_flow.process(retina_image)
+        #optical_flow = self.optical_flow.process(retina_image)
+        optical_flow = None
         
         # Store saliency map for debug visualizer
         self.last_saliency_map = saliency_map
         
-        self.last_optical_flow = optical_flow
+        #self.last_optical_flow = optical_flow
         
         return dict(to_fef=(saliency_map, optical_flow))
 
