@@ -154,6 +154,18 @@ class Display(object):
         for (x1, y1), (x2, y2) in lines:
             cv2.circle(image, (x1, y1), 1, (0, 255, 0), -1)
         self.show_image(image, 128*3+8, 8, "opt_flow")
+
+    def show_optical_flow_hsv(self, optical_flow):
+        h, w = optical_flow.shape[:2]
+        fx, fy = optical_flow[:,:,0], optical_flow[:,:,1]
+        ang = np.arctan2(fy, fx) + np.pi
+        v = np.sqrt(fx*fx+fy*fy)
+        hsv = np.zeros((h, w, 3), np.uint8)
+        hsv[...,0] = ang*(180/np.pi/2)
+        hsv[...,1] = 255
+        hsv[...,2] = np.minimum(v*4, 255)
+        image = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+        self.show_image(image, 128*3+8, 8, "opt_flow")
         
     def show_image(self, data, left, top, label):
         image = pygame.image.frombuffer(data, (128,128), 'RGB')
@@ -243,6 +255,7 @@ class Display(object):
 
         if self.lip.last_optical_flow is not None:
             self.show_optical_flow(self.lip.last_optical_flow)
+            #self.show_optical_flow_hsv(self.lip.last_optical_flow)
             
         if self.sc.last_fef_data is not None:
             self.show_fef_data_bars(self.sc.last_fef_data)
