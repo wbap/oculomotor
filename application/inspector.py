@@ -44,8 +44,8 @@ WHITE   = (255, 255, 255)
 DARK_GRAY = (64, 64, 64)
 
 
-class Display(object):
-    def __init__(self, display_size):
+class Inspector(object):
+    def __init__(self, content, display_size):
         pygame.init()
         
         self.surface = pygame.display.set_mode(display_size, 0, 24)
@@ -66,10 +66,7 @@ class Display(object):
                            fef=self.fef,
                            bg=self.bg,
                            sc=self.sc)
-
-        content = PointToTargetContent(target_size="small",
-                                       use_lure=True,
-                                       lure_size="large")
+        
         self.env = Environment(content)
         obs = self.env.reset()
         
@@ -81,11 +78,14 @@ class Display(object):
         self.episode_reward = 0
         
         self.font = pygame.font.Font(None, 20)
+
+        self.display_size = display_size
         
     def update(self):
         self.surface.fill(BLACK)
-        self.process()
+        done = self.process()
         pygame.display.update()
+        return done
         
     def draw_text(self, str, left, top, color=WHITE):
         text = self.font.render(str, True, color, BLACK)
@@ -230,16 +230,25 @@ class Display(object):
         self.last_reward = reward
         self.last_done = done
 
+        return done
+
     def get_frame(self):
         data = self.surface.get_buffer().raw
-        return data
+        image = np.fromstring(data, dtype=np.uint8)
+        image = image.reshape((self.display_size[1], self.display_size[0], 3))
+        return image
         
 
 def main():
     FPS = 60
     
     display_size = (128*4+16, 500)
-    display = Display(display_size)
+
+    content = PointToTargetContent(target_size="small",
+                                   use_lure=True,
+                                   lure_size="large")
+    
+    inspector = inspector(content, display_size)
     
     clock = pygame.time.Clock()
     running = True
@@ -247,20 +256,18 @@ def main():
     frame_count = 0
 
     if RECORDING:
-        writer = MovieWriter("out.mov", display_size, FPS)
+        writer = MovieWriter("out.mov", inspector.display_size, FPS)
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         
-        display.update()
+        inspector.update()
         clock.tick(FPS)
 
         if RECORDING:
-            frame_str = display.get_frame()
-            d = np.fromstring(frame_str, dtype=np.uint8)
-            d = d.reshape((display_size[1], display_size[0], 3))
+            d = display.get_frame()
             writer.add_frame(d)
 
             frame_count += 1

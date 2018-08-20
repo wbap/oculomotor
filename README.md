@@ -21,4 +21,6 @@ $ ./helpers/run_app.sh
 
 ### 5. Open web page in a browser
 
-[http://0.0.0.0:5000/](http://0.0.0.0:5000/)
+[http://0.0.0.0:5000/](http://0.0.0.0:5000/) : Simple environment run
+
+[http://0.0.0.0:5000/inspector](http://0.0.0.0:5000/inspector) : Inspector mode
