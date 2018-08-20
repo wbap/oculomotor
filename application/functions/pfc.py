@@ -75,11 +75,5 @@ class PFC(object):
         else:
             fef_message = 1
 
-        self._debug_analysis()
-        
         return dict(to_fef=fef_message,
                     to_bg=None)
-
-    def _debug_analysis(self):
-        print("pfc phase={}".format(self.phase))
-        print("pfc lkl={}".format(self.cursor_find_accmulator.likelihood))

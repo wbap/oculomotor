@@ -1,20 +1,20 @@
+import os
 import cv2
 
 from flask import Flask, Response, render_template
+from jinja2 import FileSystemLoader
 app = Flask(__name__)
+app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
 from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 from oculoenv import PointToTargetContent, Environment
 
 
-running = False
-
-
 def create_frame(image):
-    data = cv2.imencode('.jpg', image)
-    return (b'--frame\r\n'
-            b'Content-Type: image/jpeg\r\n\r\n' + data + '\r\n\r\n')
+    _, jpg = cv2.imencode('.jpg', image)
+    data = jpg.tobytes()
+    return b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n'
 
 
 def _run(content):
@@ -34,7 +34,7 @@ def _run(content):
     reward = 0
     done = False
 
-    while running or not done:
+    while not done:
         image, angle = obs['screen'], obs['angle']
 
         yield create_frame(image)
@@ -45,7 +45,7 @@ def _run(content):
 
 @app.route('/')
 def index():
-    return render_template('templates/index.html')
+    return render_template('index.html')
 
 
 @app.route('/run')
