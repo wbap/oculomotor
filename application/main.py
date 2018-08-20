@@ -12,6 +12,7 @@ from oculoenv import PointToTargetContent, Environment
 
 
 def create_frame(image):
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     _, jpg = cv2.imencode('.jpg', image)
     data = jpg.tobytes()
     return b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n'
