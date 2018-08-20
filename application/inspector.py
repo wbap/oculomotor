@@ -8,6 +8,7 @@ from pygame.locals import *
 from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 from oculoenv import PointToTargetContent, Environment
+import cv2
 
 RECORDING = False
 
@@ -17,14 +18,12 @@ class MovieWriter(object):
     """
     frame_size is (w, h)
     """
-    import cv2
-    
     self._frame_size = frame_size
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     self.vout = cv2.VideoWriter()
     success = self.vout.open(file_name, fourcc, fps, frame_size, True)
     if not success:
-      print("Create movie failed: {0}".format(file_name))
+        print("Create movie failed: {0}".format(file_name))
 
   def add_frame(self, frame):
     """
@@ -33,8 +32,8 @@ class MovieWriter(object):
     self.vout.write(frame)
 
   def close(self):
-    self.vout.release() 
-    self.vout = None
+      self.vout.release() 
+      self.vout = None
 
 
 BLUE    = (128, 128, 255)
@@ -117,6 +116,21 @@ class Display(object):
         data = saliency_map_.astype(np.uint8)
         data = np.stack([data for _ in range(3)], axis=2)
         self.show_image(data, 128*2+8, 8, "saliency")
+
+    def show_optical_flow(self, optical_flow):
+        image = np.zeros([128,128,3], np.uint8)
+        step = 16
+        
+        h, w = optical_flow.shape[:2]
+        y , x = np.mgrid[step//2:h:step, step//2:w:step].reshape(2,-1).astype(int)
+        fx, fy = optical_flow[y,x].T
+        lines = np.vstack([x, y, x+fx, y+fy]).T.reshape(-1, 2, 2)
+        lines = np.int32(lines + 0.5)
+        
+        cv2.polylines(image, lines, 0, (0, 255, 0))
+        for (x1, y1), (x2, y2) in lines:
+            cv2.circle(image, (x1, y1), 1, (0, 255, 0), -1)
+        self.show_image(image, 128*3+8, 8, "opt_flow")
         
     def show_image(self, data, left, top, label):
         image = pygame.image.frombuffer(data, (128,128), 'RGB')
@@ -125,7 +139,8 @@ class Display(object):
         pygame.draw.rect(self.surface, DARK_GRAY, Rect(left, top, 128, 128), 1)
         
     def show_reward(self):
-        self.draw_text("REWARD: {}".format(int(self.episode_reward)), 128 * 3 + 8 + 8, 10)
+        self.draw_text("REWARD: {}".format(int(self.episode_reward)), 128 * 3 + 24,
+                       128+48)
         
     def show_fef_data_bars(self, fef_data):
         fef_data_len = len(fef_data)
@@ -202,6 +217,9 @@ class Display(object):
             
         if self.lip.last_saliency_map is not None:
             self.show_saliency_map(self.lip.last_saliency_map)
+
+        if self.lip.last_optical_flow is not None:
+            self.show_optical_flow(self.lip.last_optical_flow)
             
         if self.sc.last_fef_data is not None:
             self.show_fef_data_bars(self.sc.last_fef_data)
@@ -220,7 +238,7 @@ class Display(object):
 def main():
     FPS = 60
     
-    display_size = (500, 500)
+    display_size = (128*4+16, 500)
     display = Display(display_size)
     
     clock = pygame.time.Clock()

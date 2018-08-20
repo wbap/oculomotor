@@ -7,6 +7,43 @@ import brica
 GAUSSIAN_KERNEL_SIZE = (5,5)
 
 
+class OpticalFlow(object):
+    def __init__(self):
+        self.last_gray_image = None
+        self.hist_32 = np.zeros((128, 128), np.float32)
+        
+        self.inst = cv2.optflow.createOptFlow_DIS(cv2.optflow.DISOPTICAL_FLOW_PRESET_MEDIUM)
+        self.inst.setUseSpatialPropagation(False)
+        self.flow = None
+        
+    def _warp_flow(self, img, flow):
+        h, w = flow.shape[:2]
+        flow = -flow
+        flow[:,:,0] += np.arange(w)
+        flow[:,:,1] += np.arange(h)[:,np.newaxis]
+        res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
+        return res
+        
+    def process(self, retina_image):
+        if retina_image is None:
+            return
+
+        gray_image = cv2.cvtColor(retina_image, cv2.COLOR_RGB2GRAY)
+        
+        if self.last_gray_image is not None:
+            if self.flow is not None:
+                self.flow = self.inst.calc(self.last_gray_image,
+                                           gray_image,
+                                           self._warp_flow(self.flow, self.flow))
+            else:
+                self.flow = self.inst.calc(self.last_gray_image,
+                                           gray_image,
+                                           None)
+            # (128, 128, 2)
+        self.last_gray_image = gray_image
+        return self.flow
+
+
 class LIP(object):
     """ Retina module.
 
@@ -16,20 +53,26 @@ class LIP(object):
     def __init__(self):
         self.timing = brica.Timing(2, 1, 0)
 
+        self.optical_flow = OpticalFlow()
+
         self.last_saliency_map = None
+        self.last_optical_flow = None
 
     def __call__(self, inputs):
         if 'from_retina' not in inputs:
             raise Exception('LIP did not recieve from Retina')
 
         retina_image = inputs['from_retina'] # (128, 128, 3)
-        
         saliency_map = self._get_saliency_map(retina_image) # (128, 128)
 
+        optical_flow = self.optical_flow.process(retina_image)
+        
         # Store saliency map for debug visualizer
         self.last_saliency_map = saliency_map
         
-        return dict(to_fef=saliency_map)
+        self.last_optical_flow = optical_flow
+        
+        return dict(to_fef=(saliency_map, optical_flow))
 
     def _get_saliency_magnitude(self, image):
         # Calculate FFT

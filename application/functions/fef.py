@@ -119,7 +119,7 @@ class FEF(object):
 
         print("fef phase={}".format(phase))
         
-        saliency_map = inputs['from_lip']
+        saliency_map, optical_flow = inputs['from_lip']
         retina_image = inputs['from_vc']
         
         # TODO: 領野をまたいだ共通phaseをどう定義するか？
