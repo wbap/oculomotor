@@ -7,10 +7,19 @@ from pygame.locals import *
 
 from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC
-from oculoenv import PointToTargetContent, Environment
+from oculoenv import Environment
+from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, \
+    VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
 import cv2
 
 RECORDING = False
+
+CONTENT_POINT_TO_TARGET = 1
+CONTENT_CHANGE_DETECTION = 2
+CONTENT_ODD_ONE_OUT = 3
+CONTENT_VISUAL_SEARCH = 4
+CONTENT_MULTIPLE_OBJECT_TRACKING = 5
+CONTENT_RANDOM_DOT_MOTION_DISCRIMINATION = 6
 
 
 class MovieWriter(object):
@@ -45,7 +54,7 @@ DARK_GRAY = (64, 64, 64)
 
 
 class Display(object):
-    def __init__(self, display_size):
+    def __init__(self, display_size, content_type=CONTENT_POINT_TO_TARGET):
         pygame.init()
         
         self.surface = pygame.display.set_mode(display_size, 0, 24)
@@ -67,9 +76,23 @@ class Display(object):
                            bg=self.bg,
                            sc=self.sc)
 
-        content = PointToTargetContent(target_size="small",
-                                       use_lure=True,
-                                       lure_size="large")
+        if content_type == CONTENT_POINT_TO_TARGET:
+            content = PointToTargetContent(target_size="small",
+                                           use_lure=True,
+                                           lure_size="large")
+        elif content_type == CONTENT_CHANGE_DETECTION:
+            content = ChangeDetectionContent(target_number=2,
+                                             max_learning_count=20,
+                                             max_interval_count=10)
+        elif content_type == CONTENT_ODD_ONE_OUT:
+            content = OddOneOutContent()
+        elif content_type == CONTENT_VISUAL_SEARCH:
+            content = VisualSearchContent()
+        elif content_type == CONTENT_MULTIPLE_OBJECT_TRACKING:
+            content = MultipleObjectTrackingContent()
+        else:
+            content = RandomDotMotionDiscriminationContent()
+        
         self.env = Environment(content)
         obs = self.env.reset()
         
@@ -237,9 +260,12 @@ class Display(object):
 
 def main():
     FPS = 60
+
+    #content_type = CONTENT_POINT_TO_TARGET
+    content_type = CONTENT_RANDOM_DOT_MOTION_DISCRIMINATION
     
     display_size = (128*4+16, 500)
-    display = Display(display_size)
+    display = Display(display_size, content_type)
     
     clock = pygame.time.Clock()
     running = True
