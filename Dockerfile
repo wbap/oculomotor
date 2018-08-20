@@ -14,4 +14,7 @@ EXPOSE 5000
 ENV FLASK_APP ${CONTAINER_APP}/server.py
 ENV FLASK_ENV development
 
+ENV XVFB_WHD="1920x1080x24"
+ENV DISPLAY=":99"
+
 CMD ["flask", "run", "--host=0.0.0.0"]

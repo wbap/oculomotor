@@ -1,7 +1,8 @@
 FROM ubuntu:xenial
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential software-properties-common cmake curl python3-dev && \
+    build-essential software-properties-common cmake curl python3-dev \
+    libgl1-mesa-dri libgl1-mesa-glx libglu1-mesa-dev xvfb x11-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -23,4 +24,5 @@ RUN pip install --upgrade pip setuptools && \
     torch \
     torchvision \
     tensorflow \
-    opencv-python
+    opencv-python \
+    pygame
