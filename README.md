@@ -1,6 +1,8 @@
 # oculomotor
 WBAI 2018 Hackathon Oculomotor Project Repository.
 
+[![preview](./doc/images/preview0.png)](https://youtu.be/WH7AUJzk70o)
+
 ## Usage
 
 ### 1. Install Docker
