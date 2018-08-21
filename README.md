@@ -24,7 +24,7 @@ $ cd oculomotor
 $ docker build -t wbap/oculomotor .
 ```
 
-### 4. Edit the files under `appliation/functions`.
+### 4. Edit the files under `application/functions` as you like.
 
 ### 5. Run the docker image.
 ```
@@ -38,3 +38,9 @@ $ ./helpers/run_app.sh
 [http://0.0.0.0:5000/inspector](http://0.0.0.0:5000/inspector) : Inspector mode
 
 ![screenshot](./doc/images/screenshot0.png)
+
+
+### 6. Impelement training code and run training
+```
+ $ ./helpers/train.sh --content=1 --step_size=100000
+``` 
