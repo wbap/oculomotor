@@ -40,7 +40,7 @@ $ ./helpers/run_app.sh
 ![screenshot](./doc/images/screenshot0.png)
 
 
-### 6. Impelement training code and run training
+### 6. Implement training code and run training
 ```
  $ ./helpers/train.sh --content=1 --step_size=100000
 ``` 
