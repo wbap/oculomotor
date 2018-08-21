@@ -2,6 +2,7 @@
 
 import numpy as np
 import math
+import argparse
 import pygame, sys
 from pygame.locals import *
 
@@ -127,7 +128,10 @@ class Inspector(object):
         self.show_image(data, 128*2+8, 8, "saliency")
 
     def show_optical_flow(self, optical_flow):
-        image = np.zeros([128,128,3], np.uint8)
+        # Show optical flow with HSV color image
+        image = self.get_optical_flow_hsv(optical_flow)
+
+        # Draw optical flow direction with lines
         step = 16
         
         h, w = optical_flow.shape[:2]
@@ -141,7 +145,7 @@ class Inspector(object):
             cv2.circle(image, (x1, y1), 1, (0, 255, 0), -1)
         self.show_image(image, 128*3+8, 8, "opt_flow")
 
-    def show_optical_flow_hsv(self, optical_flow):
+    def get_optical_flow_hsv(self, optical_flow):
         h, w = optical_flow.shape[:2]
         fx, fy = optical_flow[:,:,0], optical_flow[:,:,1]
         ang = np.arctan2(fy, fx) + np.pi
@@ -151,7 +155,7 @@ class Inspector(object):
         hsv[...,1] = 255
         hsv[...,2] = np.minimum(v*4, 255)
         image = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-        self.show_image(image, 128*3+8, 8, "opt_flow")
+        return image
         
     def show_image(self, data, left, top, label):
         image = pygame.image.frombuffer(data, (128,128), 'RGB')
@@ -241,7 +245,6 @@ class Inspector(object):
 
         if self.lip.last_optical_flow is not None:
             self.show_optical_flow(self.lip.last_optical_flow)
-            #self.show_optical_flow_hsv(self.lip.last_optical_flow)
             
         if self.sc.last_fef_data is not None:
             self.show_fef_data_bars(self.sc.last_fef_data)
@@ -262,13 +265,20 @@ class Inspector(object):
         
 
 def main():
-    FPS = 60
-
-    #content_type = CONTENT_POINT_TO_TARGET
-    content_type = CONTENT_RANDOM_DOT_MOTION_DISCRIMINATION
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--content",
+                        help="1: Point To Target"
+                        + " 2: Change Detection"
+                        + " 3: Odd One Out"
+                        + " 4: Visual Search"
+                        + " 5: Multiple Object Tracking"
+                        + " 6: Random Dot Motion Descrimination",
+                        type=int,
+                        default=1)
+    args = parser.parse_args()
     
-    display_size = (128*4+16, 500)
-
+    content_type = args.content
+    
     if content_type == CONTENT_POINT_TO_TARGET:
         content = PointToTargetContent(target_size="small",
                                        use_lure=True,
@@ -285,7 +295,9 @@ def main():
         content = MultipleObjectTrackingContent()
     else:
         content = RandomDotMotionDiscriminationContent()
-    
+
+    FPS = 60
+    display_size = (128*4+16, 500)
     inspector = Inspector(content, display_size)
     
     clock = pygame.time.Clock()
