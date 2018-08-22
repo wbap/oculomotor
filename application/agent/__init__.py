@@ -5,6 +5,7 @@ import brica
 class Environment:
     def __init__(self):
         self._image = None
+        self._angle = (0.0, 0.0)
         self._reward = 0.0
         self._done = False
         self._action = None
@@ -13,10 +14,12 @@ class Environment:
     def __call__(self, inputs):
         self._action = inputs['from_sc']
         return dict(to_retina=self._image,
-                    to_bg=(self._reward, self._done))
+                    to_bg=(self._reward, self._done),
+                    to_hp=(self._image, self._angle))
 
-    def set(self, image, reward, done):
+    def set(self, image, angle, reward, done):
         self._image = image
+        self._angle = angle
         self._reward = reward
         self._done = done
 
@@ -31,8 +34,10 @@ class Agent(object):
     connections = [
         ('environment', 'retina'), # offset = 0
         ('environment', 'bg'),
+        ('environment', 'hp'),
         ('retina', 'lip'), # offset=1
         ('retina', 'vc'),
+        ('hp', 'pfc'), # offset=1
         ('lip', 'fef'), # offset=2
         ('vc', 'pfc'), # offset=2
         ('vc', 'fef'),
@@ -47,7 +52,7 @@ class Agent(object):
         ('sc', 'environment'), # offset=6
     ]
 
-    def __init__(self, retina, lip, vc, pfc, fef, bg, sc):
+    def __init__(self, retina, lip, vc, pfc, fef, bg, sc, hp):
         self.components = {}
         self.scheduler = brica.VirtualTimeScheduler()
         self.environment = Environment()
@@ -60,6 +65,7 @@ class Agent(object):
             fef=fef,
             bg=bg,
             sc=sc,
+            hp=hp
         )
 
     def setup(self, **functions):
@@ -78,6 +84,6 @@ class Agent(object):
                           self.components[target_name], in_port)
 
     def __call__(self, image, angle, reward, done):
-        self.environment.set(image, reward, done)
+        self.environment.set(image, angle, reward, done)
         self.scheduler.step()
         return self.environment.action

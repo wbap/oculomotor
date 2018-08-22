@@ -7,7 +7,7 @@ import pygame, sys
 from pygame.locals import *
 
 from agent import Agent
-from functions import BG, FEF, LIP, PFC, Retina, SC, VC
+from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP
 from oculoenv import Environment
 from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, \
     VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
@@ -68,6 +68,7 @@ class Inspector(object):
         self.fef = FEF()
         self.bg = BG()
         self.sc = SC()
+        self.hp = HP()
 
         self.agent = Agent(retina=self.retina,
                            lip=self.lip,
@@ -75,7 +76,8 @@ class Inspector(object):
                            pfc=self.pfc,
                            fef=self.fef,
                            bg=self.bg,
-                           sc=self.sc)
+                           sc=self.sc,
+                           hp=self.hp)
         
         self.env = Environment(content)
         obs = self.env.reset()

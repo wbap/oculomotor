@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
 from agent import Agent
-from functions import BG, FEF, LIP, PFC, Retina, SC, VC
+from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP
 from oculoenv import PointToTargetContent, Environment
 
 
@@ -28,6 +28,7 @@ def _run(content):
         fef=FEF(),
         bg=BG(),
         sc=SC(),
+        hp=HP()
     )
 
     env = Environment(content)

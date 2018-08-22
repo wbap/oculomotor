@@ -9,10 +9,14 @@ GAUSSIAN_KERNEL_SIZE = (5,5)
 
 class OpticalFlow(object):
     def __init__(self):
+        """ Calculating optical flow.
+        Input image can be retina image or saliency map. 
+        """
         self.last_gray_image = None
         self.hist_32 = np.zeros((128, 128), np.float32)
         
-        self.inst = cv2.optflow.createOptFlow_DIS(cv2.optflow.DISOPTICAL_FLOW_PRESET_MEDIUM)
+        self.inst = cv2.optflow.createOptFlow_DIS(
+            cv2.optflow.DISOPTICAL_FLOW_PRESET_MEDIUM)
         self.inst.setUseSpatialPropagation(False)
         self.flow = None
         
@@ -24,12 +28,17 @@ class OpticalFlow(object):
         res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
         return res
         
-    def process(self, retina_image):
-        if retina_image is None:
+    def process(self, image, is_saliency_map=False):
+        if image is None:
             return
 
-        gray_image = cv2.cvtColor(retina_image, cv2.COLOR_RGB2GRAY)
-        
+        if not is_saliency_map:
+            # Input is retina image
+            gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        else:
+            # Input is saliency map
+            gray_image = np.clip(image * 255.0, 0.0, 255.0).astype(np.uint8)
+            
         if self.last_gray_image is not None:
             if self.flow is not None:
                 self.flow = self.inst.calc(self.last_gray_image,
@@ -65,7 +74,16 @@ class LIP(object):
         retina_image = inputs['from_retina'] # (128, 128, 3)
         saliency_map = self._get_saliency_map(retina_image) # (128, 128)
 
-        optical_flow = self.optical_flow.process(retina_image)
+        use_saliency_flow = False
+
+        if not use_saliency_flow:
+            # Calculate optical flow with retina image
+            optical_flow = self.optical_flow.process(retina_image,
+                                                     is_saliency_map=False)
+        else:
+            # Calculate optical flow with saliency map
+            optical_flow = self.optical_flow.process(saliency_map,
+                                                     is_saliency_map=True)
         
         # Store saliency map for debug visualizer
         self.last_saliency_map = saliency_map
