@@ -1,31 +1,48 @@
 # oculomotor
 WBAI 2018 Hackathon Oculomotor Project Repository.
 
+[![preview](./doc/images/preview0.png)](https://youtu.be/WH7AUJzk70o)
+
 ## Usage
-### 1. Clone this repository.
+
+### 1. Install Docker
+[How to install](https://docs.docker.com/install/)
+
+After successfull install, you should be able to run `docker ps` and get something like this:
+
+```
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+```
+
+### 2. Clone this repository.
 ```
 $ git clone --recursive https://github.com/wbap/oculomotor
 ```
 
-### 2. Build the base docker image.
+### 3. Build the docker image.
 ```
-# 2. Build the base docker image.
-$ docker build -t wbap/oculomotor-base ./base
-```
-
-### 3. Edit the files under `appliation/functions`.
-
-### 4. Build the server docker image.
-```
-$ docker build -t wbap/oculomotor-server .
+$ cd oculomotor
+$ docker build -t wbap/oculomotor .
 ```
 
-### 5. Run the server docker image.
+### 4. Edit the files under `application/functions` as you like.
+
+### 5. Run the docker image.
 ```
-$ docker run -it -p 8080:80 wbap/oculomotor-server
+$ ./helpers/run_app.sh
 ```
 
-### 6. Run the client script.
+### 6. Open web page in a browser
+
+[http://0.0.0.0:5000/](http://0.0.0.0:5000/) : Simple environment run
+
+[http://0.0.0.0:5000/inspector](http://0.0.0.0:5000/inspector) : Inspector mode
+
+![screenshot](./doc/images/screenshot0.png)
+
+
+### 6. Implement training code and run training
 ```
-$ python client.py
-```
+ $ ./helpers/train.sh --content=1 --step_size=100000
+``` 
