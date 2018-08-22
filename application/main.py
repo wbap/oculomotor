@@ -1,4 +1,5 @@
 import os
+import time
 import cv2
 
 from flask import Flask, Response, render_template
@@ -6,9 +7,22 @@ from jinja2 import FileSystemLoader
 app = Flask(__name__)
 app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
-from agent import Agent
-from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 from oculoenv import PointToTargetContent, Environment
+from inspector import Inspector
+
+from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
+
+contents = [
+    PointToTargetContent(
+        target_size="small", use_lure=True, lure_size="large"),
+    ChangeDetectionContent(
+        target_number=2, max_learning_count=20, max_interval_count=10),
+    OddOneOutContent(),
+    VisualSearchContent(),
+    MultipleObjectTrackingContent(),
+]
+
+start = time.time()
 
 
 def create_frame(image, convert_bgr=True):
@@ -20,66 +34,39 @@ def create_frame(image, convert_bgr=True):
 
 
 def _run(content):
-    agent = Agent(
-        retina=Retina(),
-        lip=LIP(),
-        vc=VC(),
-        pfc=PFC(),
-        fef=FEF(),
-        bg=BG(),
-        sc=SC(),
-    )
+    from inspector import Inspector
 
-    env = Environment(content)
+    display_size = (128 * 4 + 16, 500)
+    inspector = Inspector(content, display_size)
 
-    obs = env.reset()
-    reward = 0
     done = False
 
     while not done:
-        image, angle = obs['screen'], obs['angle']
-
-        yield create_frame(image)
-
-        action = agent(image, angle, reward, done)
-        obs, reward, done, _ = env.step(action)
-
-def _run_inspector(content):
-    from inspector import Inspector
-
-    display_size = (128*4+16, 500)
-    inspector = Inspector(content, display_size)
-
-    while True:
         done = inspector.update()
         image = inspector.get_frame()
-        
+        elapsed = time.time() - start
+
+        if elapsed > 1:
+            done = True
+
         yield create_frame(image, convert_bgr=False)
-        
-        if done:
-            break
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/inspector')
-def inspector():
-    return render_template('inspector.html')
 
-
-@app.route('/run')
-def run():
+@app.route('/run/<int:content_id>')
+def run(content_id):
     mimetype = 'multipart/x-mixed-replace; boundary=frame'
-    content = PointToTargetContent(target_size='small', use_lure=True, lure_size='large')
-    return Response(_run(content), mimetype=mimetype)
+    return Response(_run(contents[content_id]), mimetype=mimetype)
 
-@app.route('/run_inspector')
-def run_inspector():
-    mimetype = 'multipart/x-mixed-replace; boundary=frame'
-    content = PointToTargetContent(target_size='small', use_lure=True, lure_size='large')
-    return Response(_run_inspector(content), mimetype=mimetype)
+
+@app.route('/ping')
+def ping():
+    start = time.time()
+    return '', HTTPStatus.NO_CONTENT
 
 
 if __name__ == '__main__':
