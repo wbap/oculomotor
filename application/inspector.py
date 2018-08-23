@@ -116,6 +116,10 @@ class Inspector(object):
             cv2.circle(image, (x1, y1), 1, (0, 255, 0), -1)
         self.show_image(image, 128 * 3 + 8, 8, "opt_flow")
 
+    def show_map_image(self, map_image):
+        # Show allocentric map image in the Hippocampal formation.
+        self.show_image(map_image, 128 * 3 + 8, 300, "allocentric map")
+
     def get_optical_flow_hsv(self, optical_flow):
         h, w = optical_flow.shape[:2]
         fx, fy = optical_flow[:, :, 0], optical_flow[:, :, 1]
@@ -220,6 +224,9 @@ class Inspector(object):
         if self.sc.last_fef_data is not None:
             self.show_fef_data_bars(self.sc.last_fef_data)
             self.show_fef_data_grid(self.sc.last_fef_data)
+
+        if self.hp.map_image is not None:
+            self.show_map_image(self.hp.map_image)
 
         self.last_image = image
         self.last_angle = angle
