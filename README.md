@@ -3,9 +3,8 @@ WBAI 2018 Hackathon Oculomotor Project Repository.
 
 [![preview](./doc/images/preview0.png)](https://youtu.be/WH7AUJzk70o)
 
-## Usage
-
-### 1. Install Docker
+## Requirements
+### Docker
 [How to install](https://docs.docker.com/install/)
 
 After successfull install, you should be able to run `docker ps` and get something like this:
@@ -15,34 +14,37 @@ $ docker ps
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
 ```
 
-### 2. Clone this repository.
+## Usage
+The code can be executed in two modes: the interactive mode and batch mode.
+
+### Common Instructions
+#### Clone this repository
 ```
 $ git clone --recursive https://github.com/wbap/oculomotor
 ```
 
-### 3. Build the docker image.
+#### Build the docker containers
 ```
 $ cd oculomotor
 $ docker build -t wbap/oculomotor .
 ```
 
-### 4. Edit the files under `application/functions` as you like.
+#### Edit the files under `application/functions` as you like
 
-### 5. Run the docker image.
+### Running in Interactive Mode
+#### Run the container using the helper script
 ```
-$ ./helpers/run_app.sh
+$ ./helpers/run_interactive.sh
 ```
 
-### 6. Open web page in a browser
-
-[http://0.0.0.0:5000/](http://0.0.0.0:5000/) : Simple environment run
-
-[http://0.0.0.0:5000/inspector](http://0.0.0.0:5000/inspector) : Inspector mode
+#### Open the monitor interface in the browser
+Access the monitor [link](http://0.0.0.0:5000/monitor/index.html).
 
 ![screenshot](./doc/images/screenshot0.png)
 
 
-### 6. Implement training code and run training
+### Running in Batch Mode
+#### Run the container using the helper script
 ```
  $ ./helpers/train.sh --content=1 --step_size=100000
 ``` 

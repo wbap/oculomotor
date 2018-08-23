@@ -1,86 +1,75 @@
 import os
+import time
+import base64
+from threading import Lock
+from http import HTTPStatus
+
 import cv2
 
-from flask import Flask, Response, render_template
+from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
+from inspector import Inspector
+
+import flask
+from flask import Flask, make_response, send_from_directory
 from jinja2 import FileSystemLoader
-app = Flask(__name__)
+from werkzeug.local import Local, LocalManager
+
+app = Flask(__name__, static_url_path='')
+app.secret_key = 'oculomotor'
 app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
-from agent import Agent
-from functions import BG, FEF, LIP, PFC, Retina, SC, VC
-from oculoenv import PointToTargetContent, Environment
+contents = [
+    PointToTargetContent(
+        target_size="small",
+        use_lure=True,
+        lure_size="large",
+    ),
+    ChangeDetectionContent(
+        target_number=2,
+        max_learning_count=20,
+        max_interval_count=10,
+    ),
+    OddOneOutContent(),
+    VisualSearchContent(),
+    MultipleObjectTrackingContent(),
+    RandomDotMotionDiscriminationContent(),
+]
+
+display_size = (128 * 4 + 16, 500)
 
 
-def create_frame(image, convert_bgr=True):
-    if convert_bgr:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    _, jpg = cv2.imencode('.jpg', image)
-    data = jpg.tobytes()
-    return b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n'
+class Runner(object):
+    def __init__(self):
+        self.content_id = 0
+        self.inspector = Inspector(contents[self.content_id], display_size)
+        self.lock = Lock()
+
+    def step(self):
+        with self.lock:
+            self.inspector.update()
+            image = self.inspector.get_frame()
+        data = cv2.imencode('.png', image)[1].tobytes()
+        encoded = base64.encodestring(data)
+        return make_response(encoded)
+
+    def swap(self, content_id):
+        with self.lock:
+            self.inspector = Inspector(contents[content_id], display_size)
+        return 'Switched Content', HTTPStatus.OK
+
+runner = Runner()
 
 
-def _run(content):
-    agent = Agent(
-        retina=Retina(),
-        lip=LIP(),
-        vc=VC(),
-        pfc=PFC(),
-        fef=FEF(),
-        bg=BG(),
-        sc=SC(),
-    )
-
-    env = Environment(content)
-
-    obs = env.reset()
-    reward = 0
-    done = False
-
-    while not done:
-        image, angle = obs['screen'], obs['angle']
-
-        yield create_frame(image)
-
-        action = agent(image, angle, reward, done)
-        obs, reward, done, _ = env.step(action)
-
-def _run_inspector(content):
-    from inspector import Inspector
-
-    display_size = (128*4+16, 500)
-    inspector = Inspector(content, display_size)
-
-    while True:
-        done = inspector.update()
-        image = inspector.get_frame()
-        
-        yield create_frame(image, convert_bgr=False)
-        
-        if done:
-            break
+@app.route('/step')
+def step():
+    return runner.step()
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/inspector')
-def inspector():
-    return render_template('inspector.html')
+@app.route('/swap/<int:content_id>')
+def swap(content_id):
+    return runner.swap(content_id)
 
 
-@app.route('/run')
-def run():
-    mimetype = 'multipart/x-mixed-replace; boundary=frame'
-    content = PointToTargetContent(target_size='small', use_lure=True, lure_size='large')
-    return Response(_run(content), mimetype=mimetype)
-
-@app.route('/run_inspector')
-def run_inspector():
-    mimetype = 'multipart/x-mixed-replace; boundary=frame'
-    content = PointToTargetContent(target_size='small', use_lure=True, lure_size='large')
-    return Response(_run_inspector(content), mimetype=mimetype)
-
-
-if __name__ == '__main__':
-    app.run()
+@app.route('/monitor/<path:path>')
+def monitor(path):
+    return send_from_directory(os.getcwd() + '/monitor/build', path)
