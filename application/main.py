@@ -1,80 +1,75 @@
 import os
 import time
+import base64
+from threading import Lock
 from http import HTTPStatus
+
 import cv2
 
-import flask
-from flask import Flask, Response, render_template, send_from_directory, stream_with_context
-from jinja2 import FileSystemLoader
-
-app = Flask(__name__, static_url_path='')
-app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
-
-from oculoenv import PointToTargetContent, Environment
+from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
 from inspector import Inspector
 
-from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
+import flask
+from flask import Flask, make_response, send_from_directory
+from jinja2 import FileSystemLoader
+from werkzeug.local import Local, LocalManager
+
+app = Flask(__name__, static_url_path='')
+app.secret_key = 'oculomotor'
+app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
 contents = [
     PointToTargetContent(
-        target_size="small", use_lure=True, lure_size="large"),
+        target_size="small",
+        use_lure=True,
+        lure_size="large",
+    ),
     ChangeDetectionContent(
-        target_number=2, max_learning_count=20, max_interval_count=10),
+        target_number=2,
+        max_learning_count=20,
+        max_interval_count=10,
+    ),
     OddOneOutContent(),
     VisualSearchContent(),
     MultipleObjectTrackingContent(),
+    RandomDotMotionDiscriminationContent(),
 ]
 
-
-def create_frame(image, convert_bgr=True):
-    if convert_bgr:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    _, jpg = cv2.imencode('.jpg', image)
-    data = jpg.tobytes()
-    return b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n'
+display_size = (128 * 4 + 16, 500)
 
 
-def _run(content):
-    from inspector import Inspector
+class Runner(object):
+    def __init__(self):
+        self.content_id = 0
+        self.inspector = Inspector(contents[self.content_id], display_size)
+        self.lock = Lock()
 
-    display_size = (128 * 4 + 16, 500)
-    inspector = Inspector(content, display_size)
+    def step(self):
+        with self.lock:
+            self.inspector.update()
+            image = self.inspector.get_frame()
+        data = cv2.imencode('.png', image)[1].tobytes()
+        encoded = base64.encodestring(data)
+        return make_response(encoded)
 
-    done = False
+    def swap(self, content_id):
+        with self.lock:
+            self.inspector = Inspector(contents[content_id], display_size)
+        return 'Switched Content', HTTPStatus.OK
 
-    while not done:
-        start = flask.g.get('start', time.time())
+runner = Runner()
 
-        elapsed = time.time() - start
 
-        if elapsed > 0.2:
-            break
+@app.route('/step')
+def step():
+    return runner.step()
 
-        done = inspector.update()
-        image = inspector.get_frame()
 
-        yield create_frame(image, convert_bgr=False)
+@app.route('/swap/<int:content_id>')
+def swap(content_id):
+    return runner.swap(content_id)
 
 
 @app.route('/monitor/<path:path>')
 def monitor(path):
     return send_from_directory(os.getcwd() + '/monitor/build', path)
-
-
-@app.route('/run/<int:content_id>')
-def run(content_id):
-    mimetype = 'multipart/x-mixed-replace; boundary=frame'
-    time.sleep(0.3)
-    content = contents[content_id]
-    content.reset()
-    return Response(_run(stream_with_context(content)), mimetype=mimetype)
-
-
-@app.route('/ping')
-def ping():
-    flask.g.start = time.time()
-    return '', HTTPStatus.NO_CONTENT
-
-
-if __name__ == '__main__':
-    app.run()

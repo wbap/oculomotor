@@ -1,15 +1,16 @@
-# Debug inspector
+import math
+import time
 
 import numpy as np
-import math
-import argparse
+import cv2
 import pygame, sys
 from pygame.locals import *
 
 from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC
 from oculoenv import Environment
-import cv2
+
+from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
 
 BLUE = (128, 128, 255)
 RED = (255, 192, 192)
@@ -42,7 +43,7 @@ class Inspector(object):
             fef=self.fef,
             bg=self.bg,
             sc=self.sc,
-            )
+        )
 
         self.env = Environment(content)
         obs = self.env.reset()

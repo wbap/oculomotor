@@ -4,15 +4,17 @@ import './index.css'
 import App from './components/App'
 import registerServiceWorker from './registerServiceWorker'
 
+import thunkMiddleware from 'redux-thunk'
+import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
-import { createStore } from 'redux'
 import rootReducer from './reducers'
 
-import { ping } from './api'
-
-const store = createStore(rootReducer)
-
-setInterval(ping, 100)
+const store = createStore(
+  rootReducer,
+  applyMiddleware(
+    thunkMiddleware,
+  ),
+)
 
 ReactDOM.render(
   <Provider store={store}>

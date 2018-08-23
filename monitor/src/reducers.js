@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux'
 
-const content = (state=0, action) => {
+const content_id = (state=0, action) => {
   switch (action.type) {
   case 'NEXT_CONTENT':
     return state + 1
@@ -11,6 +11,16 @@ const content = (state=0, action) => {
   }
 }
 
+const frame = (state='', action) => {
+  switch(action.type) {
+  case 'UPDATE_FRAME':
+      return action.image
+  default:
+    return state
+  }
+}
+
 export default combineReducers({
-  content,
+  content_id,
+  frame,
 })
