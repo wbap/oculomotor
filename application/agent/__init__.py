@@ -13,9 +13,8 @@ class Environment:
 
     def __call__(self, inputs):
         self._action = inputs['from_sc']
-        return dict(to_retina=self._image,
-                    to_bg=(self._reward, self._done),
-                    to_hp=(self._image, self._angle))
+        return dict(to_retina=(self._image, self._angle),
+                    to_bg=(self._reward, self._done))
 
     def set(self, image, angle, reward, done):
         self._image = image
@@ -34,12 +33,12 @@ class Agent(object):
     connections = [
         ('environment', 'retina'), # offset = 0
         ('environment', 'bg'),
-        ('environment', 'hp'),
         ('retina', 'lip'), # offset=1
         ('retina', 'vc'),
-        ('hp', 'pfc'), # offset=1
+        ('retina', 'hp'),
         ('lip', 'fef'), # offset=2
         ('vc', 'pfc'), # offset=2
+        ('hp', 'pfc'), # offset=2
         ('vc', 'fef'),
         ('pfc', 'fef'), # offset=3
         ('pfc', 'bg'),

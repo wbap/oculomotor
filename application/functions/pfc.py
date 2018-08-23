@@ -53,8 +53,11 @@ class PFC(object):
             raise Exception('PFC did not recieve from FEF')
         if 'from_bg' not in inputs:
             raise Exception('PFC did not recieve from BG')
+        if 'from_hp' not in inputs:
+            raise Exception('PFC did not recieve from HP')
         
         retina_image = inputs['from_vc']
+        map_image = inputs['from_hp']
         
         self.cursor_find_accmulator.process(retina_image)
         self.cursor_find_accmulator.post_process()

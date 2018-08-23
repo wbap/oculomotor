@@ -17,18 +17,19 @@ class HP(object):
         self.map_image = np.zeros((128, 128, 3), dtype=np.uint8)
         
     def __call__(self, inputs):
-        if 'from_environment' not in inputs:
+        if 'from_retina' not in inputs:
             raise Exception('HP did not recieve from Environment')
 
         # This image input from environment is a kind of cheat and not biologically
         # acculate.
-        image, angle = inputs['from_environment'] # (128, 128, 3), (2)
+        if inputs['from_retina'] is not None:
+            image, angle = inputs['from_retina'] # (128, 128, 3), (2)
 
-        # Transform input image into allocentric panel image
-        transforemed_image = self._extract_transformed_image(image, angle)
+            # Transform input image into allocentric panel image
+            transforemed_image = self._extract_transformed_image(image, angle)
 
-        # Overlay into existing map image
-        self._overlay_extracted_image(self.map_image, transforemed_image)
+            # Overlay into existing map image
+            self._overlay_extracted_image(self.map_image, transforemed_image)
         
         return dict(to_pfc=self.map_image)
 
