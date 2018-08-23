@@ -1,10 +1,13 @@
 import os
 import time
+from http import HTTPStatus
 import cv2
 
-from flask import Flask, Response, render_template
+import flask
+from flask import Flask, Response, render_template, send_from_directory, stream_with_context
 from jinja2 import FileSystemLoader
-app = Flask(__name__)
+
+app = Flask(__name__, static_url_path='')
 app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
 from oculoenv import PointToTargetContent, Environment
@@ -21,8 +24,6 @@ contents = [
     VisualSearchContent(),
     MultipleObjectTrackingContent(),
 ]
-
-start = time.time()
 
 
 def create_frame(image, convert_bgr=True):
@@ -42,30 +43,36 @@ def _run(content):
     done = False
 
     while not done:
-        done = inspector.update()
-        image = inspector.get_frame()
+        start = flask.g.get('start', time.time())
+
         elapsed = time.time() - start
 
-        if elapsed > 1:
-            done = True
+        if elapsed > 0.2:
+            break
+
+        done = inspector.update()
+        image = inspector.get_frame()
 
         yield create_frame(image, convert_bgr=False)
 
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.route('/monitor/<path:path>')
+def monitor(path):
+    return send_from_directory(os.getcwd() + '/monitor/build', path)
 
 
 @app.route('/run/<int:content_id>')
 def run(content_id):
     mimetype = 'multipart/x-mixed-replace; boundary=frame'
-    return Response(_run(contents[content_id]), mimetype=mimetype)
+    time.sleep(0.3)
+    content = contents[content_id]
+    content.reset()
+    return Response(_run(stream_with_context(content)), mimetype=mimetype)
 
 
 @app.route('/ping')
 def ping():
-    start = time.time()
+    flask.g.start = time.time()
     return '', HTTPStatus.NO_CONTENT
 
 
