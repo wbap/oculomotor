@@ -17,16 +17,21 @@ const mapDispatchToProps = dispatch => ({
 })
 
 class App extends Component {
+  handler = undefined
+
   componentWillMount = () => {
-    this.props.callStep()
+    this.handler = setInterval(this.props.callStep, 100)
+    swap(this.props.content_id)
   }
 
   componentDidUpdate = (prevProps, prevState) => {
     if (this.props.content_id !== prevProps.content_id) {
       swap(this.props.content_id)
-    } else {
-      this.props.callStep()
     }
+  }
+
+  componentWillUnmount = () => {
+    clearInterval(this.handler)
   }
 
   render = () => (
