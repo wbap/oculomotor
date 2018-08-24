@@ -12,7 +12,20 @@ class Environment:
         self.timing = brica.Timing(0, 1, 0)
 
     def __call__(self, inputs):
-        self._action = inputs['from_sc']
+        # Action from SC module
+        sc_action = inputs['from_sc']
+
+        # Action from Cerebellum module
+        cb_action = inputs['from_cb']
+        
+        if sc_action is not None:
+            # If there is an action from SC module (supposed to be a succade eye motion),
+            # choose it.
+            self._action = sc_action
+        else:
+            # If there is no action from SC module, choose action from Cerebellum module
+            # (supposed to be a smooth pursuit eye motion)
+            self._action = cb_action
         return dict(to_retina=(self._image, self._angle),
                     to_bg=(self._reward, self._done))
 
@@ -45,13 +58,15 @@ class Agent(object):
         ('fef', 'pfc'), # offset=4
         ('fef', 'sc'),
         ('fef', 'bg'),
+        ('fef', 'cb'),
         ('bg', 'pfc'), # offset=5
         ('bg', 'fef'),
         ('bg', 'sc'),
+        ('cb', 'environment'), # offset=5
         ('sc', 'environment'), # offset=6
     ]
 
-    def __init__(self, retina, lip, vc, pfc, fef, bg, sc, hp):
+    def __init__(self, retina, lip, vc, pfc, fef, bg, sc, hp, cb):
         self.components = {}
         self.scheduler = brica.VirtualTimeScheduler()
         self.environment = Environment()
@@ -64,7 +79,8 @@ class Agent(object):
             fef=fef,
             bg=bg,
             sc=sc,
-            hp=hp
+            hp=hp,
+            cb=cb
         )
 
     def setup(self, **functions):
