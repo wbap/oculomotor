@@ -137,7 +137,8 @@ class FEF(object):
         
         return dict(to_pfc=None,
                     to_bg=output,
-                    to_sc=output)
+                    to_sc=output,
+                    to_cb=None)
 
     def _collect_output(self):
         output = []

@@ -2,7 +2,7 @@
 import argparse
 
 from agent import Agent
-from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP
+from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP, CB
 from oculoenv import Environment
 from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, \
     MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
@@ -45,7 +45,8 @@ def train(content, step_size):
         fef=FEF(),
         bg=BG(),
         sc=SC(),
-        hp=HP()
+        hp=HP(),
+        cb=CB()
     )
     
     env = Environment(content)
