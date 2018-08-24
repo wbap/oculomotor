@@ -135,8 +135,6 @@ class FEF(object):
         
         output = self._collect_output()
         
-        #self._debug_analysis()
-        
         return dict(to_pfc=None,
                     to_bg=output,
                     to_sc=output)
@@ -148,12 +146,3 @@ class FEF(object):
         for cursor_accumulator in self.cursor_accumulators:
             output.append(cursor_accumulator.output)            
         return output
-
-    def _debug_analysis(self):
-        cursor_likelihoods = []
-        for cursor_accumulator in self.cursor_accumulators:
-            cursor_likelihoods.append(cursor_accumulator.likelihood)
-            
-        saliency_likelihoods = []
-        for saliency_accumulator in self.saliency_accumulators:
-            saliency_likelihoods.append(saliency_accumulator.likelihood)

@@ -7,7 +7,7 @@ import pygame, sys
 from pygame.locals import *
 
 from agent import Agent
-from functions import BG, FEF, LIP, PFC, Retina, SC, VC
+from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP
 from oculoenv import Environment
 
 from oculoenv import PointToTargetContent, ChangeDetectionContent, OddOneOutContent, VisualSearchContent, MultipleObjectTrackingContent, RandomDotMotionDiscriminationContent
@@ -34,6 +34,7 @@ class Inspector(object):
         self.fef = FEF()
         self.bg = BG()
         self.sc = SC()
+        self.hp = HP()
 
         self.agent = Agent(
             retina=self.retina,
@@ -43,6 +44,7 @@ class Inspector(object):
             fef=self.fef,
             bg=self.bg,
             sc=self.sc,
+            hp=self.hp
         )
 
         self.env = Environment(content)
@@ -113,6 +115,10 @@ class Inspector(object):
         for (x1, y1), (x2, y2) in lines:
             cv2.circle(image, (x1, y1), 1, (0, 255, 0), -1)
         self.show_image(image, 128 * 3 + 8, 8, "opt_flow")
+
+    def show_map_image(self, map_image):
+        # Show allocentric map image in the Hippocampal formation.
+        self.show_image(map_image, 128 * 3 + 8, 300, "allocentric map")
 
     def get_optical_flow_hsv(self, optical_flow):
         h, w = optical_flow.shape[:2]
@@ -218,6 +224,9 @@ class Inspector(object):
         if self.sc.last_fef_data is not None:
             self.show_fef_data_bars(self.sc.last_fef_data)
             self.show_fef_data_grid(self.sc.last_fef_data)
+
+        if self.hp.map_image is not None:
+            self.show_map_image(self.hp.map_image)
 
         self.last_image = image
         self.last_angle = angle

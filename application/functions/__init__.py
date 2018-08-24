@@ -5,5 +5,6 @@ from .pfc import PFC
 from .retina import Retina
 from .sc import SC
 from .vc import VC
+from .hp import HP
 
-__all__ = ['BG', 'FEF', 'LIP', 'PFC', 'Retina', 'SC', 'VC']
+__all__ = ['BG', 'FEF', 'LIP', 'PFC', 'Retina', 'SC', 'VC', 'HP']
