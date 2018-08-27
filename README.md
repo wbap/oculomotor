@@ -38,13 +38,24 @@ $ ./helpers/run_interactive.sh
 ```
 
 #### Open the monitor interface in the browser
-Access the monitor [link](http://0.0.0.0:5000/monitor/index.html).
+Access the monitor. [http://0.0.0.0:5000/monitor/index.html](http://0.0.0.0:5000/monitor/index.html)
 
 ![screenshot](./doc/images/screenshot0.png)
 
 
 ### Running in Batch Mode
+
 #### Run the container using the helper script
 ```
  $ ./helpers/train.sh --content=1 --step_size=100000
-``` 
+```
+
+### Show training graph
+
+#### Show training graph with TensorBoard tool.
+```
+ $ ./helpers/board.sh
+```
+Access the log page. [http://0.0.0.0:6006/](http://0.0.0.0:6006/)
+
+![tensorboard](./doc/images/tensorboard0.png)
