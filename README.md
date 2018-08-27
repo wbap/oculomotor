@@ -47,7 +47,7 @@ Access the monitor. [http://0.0.0.0:5000/monitor/index.html](http://0.0.0.0:5000
 
 #### Run the container using the helper script
 ```
- $ ./helpers/train.sh --content=1 --step_size=100000
+ $ ./helpers/train.sh --content=1 --step_size=1000000 --log_file=experiment0
 ```
 
 ### Show training graph
