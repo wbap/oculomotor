@@ -4,6 +4,11 @@ import numpy as np
 import brica
 from .utils import load_image
 
+"""
+This is a sample implemention of PFC (Prefrontal cortex) module.
+You can change this as you like.
+"""
+
 class Phase(object):
     INIT = -1  # Initial phase
     START = 0  # Start phase while finding red cross cursor
@@ -55,10 +60,14 @@ class PFC(object):
             raise Exception('PFC did not recieve from BG')
         if 'from_hp' not in inputs:
             raise Exception('PFC did not recieve from HP')
-        
+
+        # Image from Visual cortex module.
         retina_image = inputs['from_vc']
+        # Allocentrix map image from hippocampal formatin module.
         map_image = inputs['from_hp']
-        
+
+        # This is a very sample implementation of phase detection.
+        # You should change here as you like.
         self.cursor_find_accmulator.process(retina_image)
         self.cursor_find_accmulator.post_process()
         

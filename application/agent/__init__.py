@@ -1,6 +1,9 @@
 import numpy as np
 import brica
 
+# Limit of horizontal and vertical angles at one environment step.
+ACTION_RATE = 0.02
+
 
 class Environment:
     def __init__(self):
@@ -21,11 +24,15 @@ class Environment:
         if sc_action is not None:
             # If there is an action from SC module (supposed to be a succade eye motion),
             # choose it.
-            self._action = sc_action
-        else:
+            self._action = np.clip(sc_action, -1.0, 1.0) * ACTION_RATE
+        elif cb_action is not None:
             # If there is no action from SC module, choose action from Cerebellum module
             # (supposed to be a smooth pursuit eye motion)
-            self._action = cb_action
+            self._action = np.clip(cb_action, -1.0, 1.0) * ACTION_RATE
+
+        # Final action values (horizontal and vertical relative angles) are between
+        # -ACTION_RATE ~ ACTION_RATE.
+        
         return dict(to_retina=(self._image, self._angle),
                     to_bg=(self._reward, self._done))
 
