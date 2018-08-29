@@ -19,8 +19,9 @@ RUN pip install --upgrade pip setuptools && \
     pip --no-cache-dir install \
     numpy==1.14.5 flask \
     pygame pyglet opencv-python opencv-contrib-python \
-    BriCA2 oculoenv==0.0.6 
-    #chainer torch torchvision tensorflow 
+    BriCA2 oculoenv==0.0.6 \
+    tensorflow
+    #chainer torch torchvision
 
 ENV CONTAINER_APP /opt/oculomotor
 
@@ -30,7 +31,7 @@ ENV PYTHONPATH ${CONTAINER_APP}/application:${CONTAINER_APP}/test
 ENV LC_ALL C.UTF-8
 ENV LANG C.UTF-8
 
-EXPOSE 5000
+EXPOSE 5000 6006
 
 ENV FLASK_APP ${CONTAINER_APP}/application/main.py
 ENV FLASK_ENV development
