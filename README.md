@@ -34,7 +34,7 @@ $ docker build -t wbap/oculomotor .
 ### Running in Interactive Mode
 #### Run the container using the helper script
 ```
-$ ./helpers/run_interactive.sh
+$ ./helpers/interactive.sh
 ```
 
 #### Open the monitor interface in the browser
