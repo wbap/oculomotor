@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+ Main script for web monitor interface. 
+"""
+
 import os
 import time
 import base64
@@ -19,16 +24,8 @@ app.secret_key = 'oculomotor'
 app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
 contents = [
-    PointToTargetContent(
-        target_size="small",
-        use_lure=True,
-        lure_size="large",
-    ),
-    ChangeDetectionContent(
-        target_number=2,
-        max_learning_count=20,
-        max_interval_count=10,
-    ),
+    PointToTargetContent(),
+    ChangeDetectionContent(),
     OddOneOutContent(),
     VisualSearchContent(),
     MultipleObjectTrackingContent(),

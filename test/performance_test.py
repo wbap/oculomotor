@@ -22,13 +22,9 @@ class Contents(object):
 class TestPerformance(unittest.TestCase):
     def get_content(self, content_type):
         if content_type == Contents.POINT_TO_TARGET:
-            content = PointToTargetContent(target_size="small",
-                                           use_lure=True,
-                                           lure_size="large")
+            content = PointToTargetContent()
         elif content_type == Contents.CHANGE_DETECTION:
-            content = ChangeDetectionContent(target_number=3,
-                                             max_learning_count=20,
-                                             max_interval_count=10)
+            content = ChangeDetectionContent()
         elif content_type == Contents.ODD_ONE_OUT:
             content = OddOneOutContent()
         elif content_type == Contents.VISUAL_SEARCH:

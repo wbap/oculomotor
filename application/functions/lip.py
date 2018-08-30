@@ -56,7 +56,7 @@ class OpticalFlow(object):
 class LIP(object):
     """ Retina module.
 
-    This LIP module calculates saliency map from retina image.
+    This LIP module calculates saliency map and optical flow from retina image.
     """
     
     def __init__(self):

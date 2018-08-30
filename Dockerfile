@@ -19,7 +19,7 @@ RUN pip install --upgrade pip setuptools && \
     pip --no-cache-dir install \
     numpy==1.14.5 flask \
     pygame pyglet opencv-python opencv-contrib-python \
-    BriCA2 oculoenv==0.0.6 \
+    BriCA2 oculoenv==0.1.0 \
     tensorflow
     #chainer torch torchvision
 
