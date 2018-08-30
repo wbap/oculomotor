@@ -59,3 +59,11 @@ Access the monitor. [http://0.0.0.0:5000/monitor/index.html](http://0.0.0.0:5000
 Access the log page. [http://0.0.0.0:6006/](http://0.0.0.0:6006/)
 
 ![tensorboard](./doc/images/tensorboard0.png)
+
+
+### Run Final Evaluation
+
+#### Run the container using the helper evaluation script
+```
+ $ ./helpers/evaluate.sh --log_file=evaluate0
+```
