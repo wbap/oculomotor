@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import argparse
-
 """
  Training script for oculomotor tasks.
 """
+
+import argparse
 
 from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP, CB
@@ -25,13 +25,9 @@ class Contents(object):
 
 def get_content(content_type):
     if content_type == Contents.POINT_TO_TARGET:
-        content = PointToTargetContent(target_size="small",
-                                       use_lure=True,
-                                       lure_size="large")
+        content = PointToTargetContent()
     elif content_type == Contents.CHANGE_DETECTION:
-        content = ChangeDetectionContent(target_number=3,
-                                         max_learning_count=20,
-                                         max_interval_count=10)
+        content = ChangeDetectionContent()
     elif content_type == Contents.ODD_ONE_OUT:
         content = OddOneOutContent()
     elif content_type == Contents.VISUAL_SEARCH:
@@ -44,19 +40,36 @@ def get_content(content_type):
 
 
 def train(content, step_size, logger):
+    retina = Retina()
+    lip = LIP()
+    vc = VC()
+    pfc = PFC()
+    fef = FEF()
+    bg = BG()
+    sc = SC()
+    hp = HP()
+    cb = CB()
+    
     agent = Agent(
-        retina=Retina(),
-        lip=LIP(),
-        vc=VC(),
-        pfc=PFC(),
-        fef=FEF(),
-        bg=BG(),
-        sc=SC(),
-        hp=HP(),
-        cb=CB()
+        retina=retina,
+        lip=lip,
+        vc=vc,
+        pfc=pfc,
+        fef=fef,
+        bg=bg,
+        sc=sc,
+        hp=hp,
+        cb=cb
     )
     
     env = Environment(content)
+
+    # If your training code is written inside BG module, please add model load code here like.
+    #
+    #   bg.load_model("model.pkl")
+    #
+    # When runnning with Docker, directory under 'oculomotor/' is volume shared
+    # with the host, so you can load/save the model data at anywhere under 'oculomotor/' dir.
     
     obs = env.reset()
     
@@ -87,7 +100,12 @@ def train(content, step_size, logger):
             logger.log("episode_reward", episode_reward, episode_count)
             
             episode_reward = 0
-
+            
+            # Plase add model save code as you like.
+            #
+            # if i % 10 == 0:
+            #     bg.save_model("model.pkl")
+            
     print("training finished")
     logger.close()
     
@@ -113,20 +131,18 @@ def main():
     step_size = args.step_size
     log_file = args.log_file
 
-    # Log is stored 'log' directory
-    log_path = "log/{}".format(log_file)
-
     # Create task content
     content = get_content(content_type)
     
     print("start training content: {} step_size={}".format(content_type, step_size))
 
+    # Log is stored 'log' directory
     log_path = "log/{}".format(log_file)
     logger = Logger(log_path)
 
     # Start training
     train(content, step_size, logger)
-    
-    
+
+
 if __name__ == '__main__':
     main()

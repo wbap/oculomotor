@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Visualize processed processed image, state, etc in each function component of the Agent.
+This inspector renders these information into an image, and it can be retrieved by get_frame().
+"""
+
 import math
 import time
 

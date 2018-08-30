@@ -1,4 +1,7 @@
-# Debug local inspector without web interface.
+# -*- coding: utf-8 -*-
+"""
+Debug local inspector tool without web interface.
+"""
 
 import numpy as np
 import argparse
@@ -60,13 +63,9 @@ def main():
     content_type = args.content
     
     if content_type == CONTENT_POINT_TO_TARGET:
-        content = PointToTargetContent(target_size="small",
-                                       use_lure=True,
-                                       lure_size="large")
+        content = PointToTargetContent()
     elif content_type == CONTENT_CHANGE_DETECTION:
-        content = ChangeDetectionContent(target_number=2,
-                                         max_learning_count=20,
-                                         max_interval_count=10)
+        content = ChangeDetectionContent()
     elif content_type == CONTENT_ODD_ONE_OUT:
         content = OddOneOutContent()
     elif content_type == CONTENT_VISUAL_SEARCH:

@@ -15,7 +15,7 @@ CONTAINER ID        IMAGE               COMMAND             CREATED             
 ```
 
 ## Usage
-The code can be executed in two modes: the interactive mode and batch mode.
+The code can be executed in two modes: the interactive mode and batch training mode.
 
 ### Common Instructions
 #### Clone this repository
@@ -43,7 +43,7 @@ Access the monitor. [http://0.0.0.0:5000/monitor/index.html](http://0.0.0.0:5000
 ![screenshot](./doc/images/screenshot0.png)
 
 
-### Running in Batch Mode
+### Running in Batch Training Mode
 
 #### Run the container using the helper script
 ```
