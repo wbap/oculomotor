@@ -4,6 +4,7 @@
 """
 
 import argparse
+import os
 
 from agent import Agent
 from functions import BG, FEF, LIP, PFC, Retina, SC, VC, HP, CB
@@ -27,7 +28,8 @@ TASK3_DURATION = 60*30
 TASK4_DURATION = 60*30
 TASK5_DURATION = 60*40
 TASK6_DURATION = 60*30
-    
+
+
 content_class_names = [
     "PointToTargetContent",
     "ChangeDetectionContent",
@@ -41,8 +43,23 @@ class TrialResult(object):
     def __init__(self, content_id, difficulty, info):
         self.content_id = content_id
         self.difficulty = difficulty
-        self.succeed = info['result'] == 'success'
+        if info['result'] == 'success':
+            self.succeed = 1
+        else:
+            self.succeed = 0
         self.reaction_step = info['reaction_step']
+
+    def __lt__(self, other):
+        if self.content_id != other.content_id:
+            return self.content_id < other.content_id
+        else:
+            return self.difficulty < other.difficulty
+
+    def get_string(self):
+        return "{}, {}, {}, {}".format(self.content_id,
+                                       self.difficulty,
+                                       self.succeed,
+                                       self.reaction_step)
 
 
 class EvaluationTask(object):
@@ -88,9 +105,9 @@ class EvaluationTask(object):
 
             assert(done is not True)
 
-        print("content:{} difficulty:{} end, reward=".format(self.content_id,
-                                                             self.difficulty,
-                                                             task_reward))
+        print("content:{} difficulty:{} end, reward={}".format(self.content_id,
+                                                               self.difficulty,
+                                                               task_reward))
         return results, task_reward
 
 
@@ -116,7 +133,25 @@ tasks = [
     EvaluationTask(content_id=3, difficulty=-1, duration=TASK3_DURATION)
 ]
 
-def evaluate(logger):
+
+def save_results(all_results, log_path):
+    """ Save result into csv file. """
+    
+    if not os.path.exists(log_path):
+      os.makedirs(log_path)
+      
+    file_path = "{}/evaluation.csv".format(log_path)
+      
+    f = open(file_path, mode='w')
+    sorted_results = sorted(all_results)
+
+    with open(file_path, mode='w') as f:
+        for result in sorted_results:
+            f.write(result.get_string())
+            f.write("\n")
+            
+
+def evaluate(logger, log_path):
     retina = Retina()
     lip = LIP()
     vc = VC()
@@ -125,7 +160,7 @@ def evaluate(logger):
     bg = BG()
     sc = SC()
     hp = HP()
-    cb = CB()    
+    cb = CB()
     
     agent = Agent(
         retina=retina,
@@ -142,11 +177,17 @@ def evaluate(logger):
     #bg.load_model("model.pkl")
 
     total_reward = 0
+
+    all_results = []
     
     for i, task in enumerate(tasks):
         results, task_reward = task.evaluate(agent)
+        all_results += results
         total_reward += task_reward
         logger.log("evaluation_reward", total_reward, i)
+
+    # Save result csv
+    save_results(all_results, log_path)
     
     print("evaluation finished:")
     logger.close()
@@ -166,7 +207,7 @@ def main():
     logger = Logger(log_path)
 
     # Start evaluation
-    evaluate(logger)
+    evaluate(logger, log_path)
 
 
 if __name__ == '__main__':
