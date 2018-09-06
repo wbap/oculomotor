@@ -15,16 +15,12 @@ RUN if [ ! -e /usr/bin/python ]; then ln -sf /usr/bin/python3 /usr/bin/python; f
     python get-pip.py && \
     rm get-pip.py
 
+COPY requirements.txt /tmp
+
 RUN pip install --upgrade pip setuptools && \
-    pip --no-cache-dir install \
-    numpy==1.14.5 flask \
-    pygame pyglet opencv-python opencv-contrib-python \
-    BriCA2 oculoenv==0.1.0 \
-    tensorflow
-    #chainer torch torchvision
+    pip --no-cache-dir install -r /tmp/requirements.txt
 
 ENV CONTAINER_APP /opt/oculomotor
-
 WORKDIR ${CONTAINER_APP}
 
 ENV PYTHONPATH ${CONTAINER_APP}/application:${CONTAINER_APP}/test
