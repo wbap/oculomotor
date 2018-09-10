@@ -24,12 +24,12 @@ app.secret_key = 'oculomotor'
 app.jinja_loader = FileSystemLoader(os.getcwd() + '/templates')
 
 contents = [
-    PointToTargetContent(),
-    ChangeDetectionContent(),
-    OddOneOutContent(),
-    VisualSearchContent(),
-    MultipleObjectTrackingContent(),
-    RandomDotMotionDiscriminationContent(),
+    PointToTargetContent,
+    ChangeDetectionContent,
+    OddOneOutContent,
+    VisualSearchContent,
+    MultipleObjectTrackingContent,
+    RandomDotMotionDiscriminationContent,
 ]
 
 display_size = (128 * 4 + 16, 500)
@@ -49,10 +49,19 @@ class Runner(object):
         encoded = base64.encodestring(data)
         return make_response(encoded)
 
-    def swap(self, content_id):
+    def set_content(self, content_id):
+        self.content_id = content_id
+        ret = {
+            'difficulty_range': contents[content_id].difficulty_range,
+            'current_difficulty': -1,
+        }
+        return flask.jsonify(ret)
+
+    def set_difficulty(self, difficulty):
         with self.lock:
-            self.inspector = Inspector(contents[content_id], display_size)
-        return 'Switched Content', HTTPStatus.OK
+            content = contents[self.content_id](difficulty)
+            self.inspector = Inspector(content, display_size)
+        return 'New Content Created', HTTPStatus.OK
 
 runner = Runner()
 
@@ -62,9 +71,13 @@ def step():
     return runner.step()
 
 
-@app.route('/swap/<int:content_id>')
-def swap(content_id):
-    return runner.swap(content_id)
+@app.route('/content/<int:content_id>')
+def content(content_id):
+    return runner.set_content(content_id)
+
+@app.route('/difficulty/<int:difficulty>')
+def difficulty(difficulty):
+    return runner.set_difficulty(difficulty)
 
 
 @app.route('/monitor/<path:path>')
