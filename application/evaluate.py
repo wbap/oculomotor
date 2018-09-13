@@ -40,9 +40,12 @@ content_class_names = [
 ]
 
 class TrialResult(object):
-    def __init__(self, content_id, difficulty, info):
+    """ Entry for one task trial result. """
+    
+    def __init__(self, content_id, difficulty, reward, info):
         self.content_id = content_id
         self.difficulty = difficulty
+        self.reward = reward
         if info['result'] == 'success':
             self.succeed = 1
         else:
@@ -56,11 +59,57 @@ class TrialResult(object):
             return self.difficulty < other.difficulty
 
     def get_string(self):
-        return "{}, {}, {}, {}".format(self.content_id,
+        return "{},{},{},{},{}".format(self.content_id,
                                        self.difficulty,
+                                       self.reward,
                                        self.succeed,
                                        self.reaction_step)
 
+class AggregatedResult(object):
+    def __init__(self, content_id, difficulty):
+        self.content_id = content_id
+        self.difficulty = difficulty
+
+        self.trial_results = []
+
+    def __lt__(self, other):
+        if self.content_id != other.content_id:
+            return self.content_id < other.content_id
+        else:
+            return self.difficulty < other.difficulty
+
+    def add_trial_result(self, trial_result):
+        self.trial_results.append(trial_result)
+
+    def aggegate(self):
+        reward_sum = 0
+        accuracy_sum = 0.0
+        reaction_step_sum = 0.0
+        
+        for trial_result in self.trial_results:
+            reward_sum += trial_result.reward
+            accuracy_sum += trial_result.succeed
+            reaction_step_sum += trial_result.reaction_step
+
+        if len(self.trial_results) != 0:
+            average_accuracy = accuracy_sum / len(self.trial_results)
+            average_reaction_step = reaction_step_sum / len(self.trial_results)
+        else:
+            average_accuracy = 0.0
+            average_reaction_step = 0.0
+
+        trial_count = len(self.trial_results)
+
+        return (reward_sum, trial_count, average_accuracy, average_reaction_step)
+        
+    def get_string(self):
+        reward_sum, trial_count, average_accuray, average_reaction_step = self.aggegate()
+        return "{},{},{},{},{:.3f},{:.2f}".format(self.content_id,
+                                                  self.difficulty,
+                                                  reward_sum,
+                                                  trial_count,
+                                                  average_accuray,
+                                                  average_reaction_step)
 
 class EvaluationTask(object):
     def __init__(self, content_id, difficulty, duration):
@@ -98,7 +147,8 @@ class EvaluationTask(object):
             if 'result' in info:
                 result = TrialResult(self.content_id,
                                      self.difficulty,
-                                     info)
+                                     reward,
+                                     info,)
                 results.append(result)
             
             task_reward += reward
@@ -133,23 +183,44 @@ tasks = [
     EvaluationTask(content_id=3, difficulty=-1, duration=TASK3_DURATION)
 ]
 
-
-def save_results(all_results, log_path):
-    """ Save result into csv file. """
+def aggregate_results(all_trial_results):
+    aggregated_results = dict()
     
-    if not os.path.exists(log_path):
-      os.makedirs(log_path)
-      
-    file_path = "{}/evaluation.csv".format(log_path)
-      
-    f = open(file_path, mode='w')
-    sorted_results = sorted(all_results)
+    for task in tasks:
+        aggeraged_result = AggregatedResult(task.content_id, task.difficulty)
+        aggregated_results[(task.content_id, task.difficulty)] = aggeraged_result
 
+    for trial_result in all_trial_results:
+        aggreraged_result = aggregated_results[(trial_result.content_id,
+                                               trial_result.difficulty)]
+        aggreraged_result.add_trial_result(trial_result)
+
+    return sorted(aggregated_results.values())
+
+def save_results_to_file(results, file_path):
+    f = open(file_path, mode='w')
     with open(file_path, mode='w') as f:
-        for result in sorted_results:
+        for result in results:
             f.write(result.get_string())
             f.write("\n")
-            
+
+def save_results(all_trial_results, log_path):
+    """ Save result into csv files. """
+    
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+
+    # Save raw trial results
+    sorted_all_trial_results = sorted(all_trial_results)
+
+    raw_file_path = "{}/raw_eval.csv".format(log_path)
+    save_results_to_file(sorted_all_trial_results, raw_file_path)
+
+    # Aggregate trial results
+    aggregated_results = aggregate_results(all_trial_results)
+    aggregated_file_path = "{}/agg_eval.csv".format(log_path)
+    save_results_to_file(aggregated_results, aggregated_file_path)
+
 
 def evaluate(logger, log_path):
     retina = Retina()
@@ -178,16 +249,16 @@ def evaluate(logger, log_path):
 
     total_reward = 0
 
-    all_results = []
+    all_trial_results = []
     
     for i, task in enumerate(tasks):
-        results, task_reward = task.evaluate(agent)
-        all_results += results
+        trial_results, task_reward = task.evaluate(agent)
+        all_trial_results += trial_results
         total_reward += task_reward
         logger.log("evaluation_reward", total_reward, i)
 
-    # Save result csv
-    save_results(all_results, log_path)
+    # Save result csv files
+    save_results(all_trial_results, log_path)
     
     print("evaluation finished:")
     logger.close()
