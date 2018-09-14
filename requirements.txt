@@ -7,7 +7,7 @@ opencv-python
 opencv-contrib-python
 pybind11
 BriCA2
-oculoenv==0.1.1
+oculoenv==0.1.2
 tensorflow
 chainer
 torch
