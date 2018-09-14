@@ -30,10 +30,15 @@ class TestRetina(unittest.TestCase):
         if not os.path.exists(self.get_file_path("test_results")):
             os.mkdir(self.get_file_path("test_results"))
         
-        rates = self.retina.rates
-        rates = (rates * 255.0).astype(np.uint8)
-        rates = np.reshape(rates, [128,128])
-        self.save_image(rates, "test_results/retina_rates.png")
+        blur_rates = self.retina.blur_rates
+        blur_rates = (blur_rates * 255.0).astype(np.uint8)
+        blur_rates = np.reshape(blur_rates, [128,128])
+        self.save_image(blur_rates, "test_results/retina_blur_mix_rates.png")
+
+        gray_rates = self.retina.gray_rates
+        gray_rates = (gray_rates * 255.0).astype(np.uint8)
+        gray_rates = np.reshape(gray_rates, [128,128])
+        self.save_image(gray_rates, "test_results/retina_gray_mix_rates.png")
 
     def test_retina_performance(self):
         image = self.load_image("images/task_images/1_000.png")

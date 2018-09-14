@@ -76,7 +76,7 @@ class TestLIP(unittest.TestCase):
         start = time.time()
         frame_size = 100
         for i in range(frame_size):
-            tmp = self.convert_to_retina_image(image)
+            tmp = self.lip._get_saliency_map(image)
         elapsed_time = time.time() - start
         
         print('saliency process time: {}[sec]'.format(elapsed_time / frame_size))
