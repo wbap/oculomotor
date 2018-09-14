@@ -4,16 +4,17 @@ import './index.css'
 import App from './components/App'
 import registerServiceWorker from './registerServiceWorker'
 
-import thunkMiddleware from 'redux-thunk'
 import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
+import thunkMiddleware from 'redux-thunk'
+
 import rootReducer from './reducers'
+
+const middlewares = [thunkMiddleware]
 
 const store = createStore(
   rootReducer,
-  applyMiddleware(
-    thunkMiddleware,
-  ),
+  applyMiddleware(...middlewares),
 )
 
 ReactDOM.render(
