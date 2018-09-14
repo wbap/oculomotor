@@ -54,6 +54,7 @@ class Retina(object):
                     rate = 1.0
                 rates[j*width + i] = rate
         rates = np.array(rates)
+        #rates = rates * 0.9 + 0.1
         rates = rates.reshape([width, width, 1])
         inv_rates = 1.0 - rates
         return rates, inv_rates
