@@ -17,6 +17,11 @@ class TestRetina(unittest.TestCase):
         file_path = os.path.join(module_dir, relative_path)
         return file_path
 
+    def load_image(self, path):
+        file_path = self.get_file_path(path)
+        image =  io.imread(file_path)
+        return image
+
     def save_image(self, image, path):
         file_path = self.get_file_path(path)
         io.imsave(file_path, image)
@@ -29,6 +34,17 @@ class TestRetina(unittest.TestCase):
         rates = (rates * 255.0).astype(np.uint8)
         rates = np.reshape(rates, [128,128])
         self.save_image(rates, "test_results/retina_rates.png")
+
+    def test_retina_performance(self):
+        image = self.load_image("images/task_images/1_000.png")
+        
+        start = time.time()
+        frame_size = 100
+        for i in range(frame_size):
+            tmp = self.retina._create_retina_image(image)
+        elapsed_time = time.time() - start
+        
+        print('retina process time: {}[sec]'.format(elapsed_time / frame_size))
         
         
 
