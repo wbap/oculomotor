@@ -106,7 +106,7 @@ def step():
 def content(content_id):
     return runner.set_content(content_id)
 
-@app.route('/difficulty/<str:difficulty>')
+@app.route('/difficulty/<difficulty>')
 def difficulty(difficulty):
     return runner.set_difficulty(int(difficulty))
 
