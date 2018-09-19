@@ -130,13 +130,20 @@ class LIP(object):
             ch_image = image_resized[:, :, ch]
             saliency[:, :, ch] = self._get_saliency_magnitude(ch_image)
 
-        # Calclate mean over channels
-        saliency = np.mean(saliency, 2)
+        # Calclate max over channels
+        saliency = np.max(saliency, axis=2)
         # (64,64)
 
         saliency = cv2.GaussianBlur(saliency, GAUSSIAN_KERNEL_SIZE, sigmaX=8, sigmaY=0)
-        saliency = (saliency ** 2)
-        saliency = saliency / np.max(saliency) # Normalize
+
+        SALIENCY_ENHANCE_COEFF = 2.0 # Strong saliency contrst
+        #SALIENCY_ENHANCE_COEFF = 0.5 # Low saliency contrast, but sensible for weak saliency
+
+        # Emphasize saliency
+        saliency = (saliency ** SALIENCY_ENHANCE_COEFF)
+
+        # Normalize to 0.0~1.0
+        saliency = saliency / np.max(saliency)
     
         # Resize to original size
         saliency = cv2.resize(saliency, image.shape[1::-1])

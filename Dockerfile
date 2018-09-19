@@ -29,7 +29,7 @@ ENV LANG C.UTF-8
 
 EXPOSE 5000 6006
 
-ENV FLASK_APP ${CONTAINER_APP}/application/main.py
+ENV FLASK_APP ${CONTAINER_APP}/application/server
 ENV FLASK_ENV development
 
 ENV XVFB_WHD="1920x1080x24"

@@ -1,46 +1,42 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
-import { nextContent, prevContent, stepAgent } from '../actions'
+import ContentController from './ContentController'
+import DifficultyController from './DifficultyController'
 
-import { swap } from '../api'
+import { init, info, stepAgent } from '../actions'
 
-const mapStateToProps = state => ({
-  content_id: state.content_id,
+const mapState = state => ({
   frame: state.frame,
 })
 
-const mapDispatchToProps = dispatch => ({
-  onClickNext: () => dispatch(nextContent()),
-  onClickPrev: () => dispatch(prevContent()),
-  callStep: () => dispatch(stepAgent()),
+const mapActions = dispatch => ({
+  initialize: () => dispatch(init()),
+  getInfo: () => dispatch(info()),
+  callAgent: () => dispatch(stepAgent()),
 })
 
 class App extends Component {
   handler = undefined
 
   componentWillMount = () => {
-    this.handler = setInterval(this.props.callStep, 100)
-    swap(this.props.content_id)
+    this.props.initialize()
+    this.handler = setInterval(() => {
+      this.props.getInfo().then(this.props.callAgent)
+    }, 100)
   }
 
-  componentDidUpdate = (prevProps, prevState) => {
-    if (this.props.content_id !== prevProps.content_id) {
-      swap(this.props.content_id)
-    }
-  }
-
-  componentWillUnmount = () => {
+  componentWillUnmount =() => {
     clearInterval(this.handler)
   }
 
   render = () => (
     <div>
       <img alt="Agent Monitor" src={`data:image/png;base64,${this.props.frame}`} />
-      <input type="button" value="前タスク" onClick={this.props.onClickPrev} />
-      <input type="button" value="次タスク" onClick={this.props.onClickNext} />
+      <ContentController />
+      <DifficultyController />
     </div>
   )
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(App)
+export default connect(mapState, mapActions)(App)
