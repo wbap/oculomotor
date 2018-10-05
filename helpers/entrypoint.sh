@@ -12,12 +12,22 @@ else
 	while ! xdpyinfo -display "${DISPLAY}" > /dev/null 2>&1; do
   		sleep 0.1
 	done
+
 	# Execute passed command.
 	"$@" &
 	cmd_pid=$!
-	trap "echo 'Stopping'; kill -SIGTERM $Xvfb_pid $cmd_pid" SIGINT SIGTERM
-	# Wait for process to end.
-	while kill -0 $Xvfb_pid $cmd_pid > /dev/null 2>&1; do
-    	wait
+
+    # Catch Ctrl-C interrupt and then kill process
+    trap "echo 'Stopping'; kill -s TERM $Xvfb_pid $cmd_pid" INT TERM
+    
+    # Wait for command process to end.
+    while kill -0 $cmd_pid > /dev/null 2>&1; do
+        # Wait for command process to finish.
+    	wait $cmd_pid
 	done
+
+    if kill -0 $Xvfb_pid > /dev/null 2>&1; then
+        # Kill Xfvb process
+        kill -s TERM $Xvfb_pid
+    fi
 fi
