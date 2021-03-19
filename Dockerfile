@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y libsm6 libxext6 libxrender1 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN if [ ! -e /usr/bin/python ]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
-    curl -O https://bootstrap.pypa.io/get-pip.py && \
+    curl -O https://bootstrap.pypa.io/pip/3.5/get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
 
