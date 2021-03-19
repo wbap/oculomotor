@@ -15,8 +15,7 @@ class OpticalFlow(object):
         self.last_gray_image = None
         self.hist_32 = np.zeros((128, 128), np.float32)
         
-        self.inst = cv2.optflow.createOptFlow_DIS(
-            cv2.optflow.DISOPTICAL_FLOW_PRESET_MEDIUM)
+        self.inst = cv2.DISOpticalFlow_create(cv2.DISOPTICAL_FLOW_PRESET_MEDIUM) # migrate to verson 4
         self.inst.setUseSpatialPropagation(False)
         self.flow = None
         
