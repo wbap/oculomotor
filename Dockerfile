@@ -1,6 +1,10 @@
 FROM ubuntu:18.04
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y tzdata
+# timezone setting
+ENV TZ=Asia/Tokyo
+
+RUN apt-get install -y --no-install-recommends \
     build-essential software-properties-common cmake curl python3-dev \
     libgl1-mesa-dri libgl1-mesa-glx libglu1-mesa-dev xvfb x11-utils libasio-dev && \
     apt-get clean && \

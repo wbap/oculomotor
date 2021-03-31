@@ -2,7 +2,7 @@ numpy==1.14.5
 flask
 flask-cors
 pygame
-pyglet
+pyglet==1.3.2
 opencv-python
 opencv-contrib-python
 pybind11
